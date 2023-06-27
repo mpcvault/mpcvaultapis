@@ -1,0 +1,236 @@
+// Copyright 2023 MPCVault (MetaLoop INC)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package mpcvault.platform.v1;
+
+option go_package = "go.mpcvault.com/genproto/mpcvaultapis/platform/v1;platform";
+option java_multiple_files = true;
+option java_outer_classname = "PlatformProto";
+option java_package = "com.mpcvault.platform.v1";
+
+
+service PlatformAPI {
+    // CreateSigningRequest creates a signing request for the given transaction.
+    rpc CreateSigningRequest (CreateSigningRequestRequest) returns (CreateSigningRequestResponse);
+
+    // RejectSigningRequest rejects a signing request.
+    rpc RejectSigningRequest (RejectSigningRequestRequest) returns (RejectSigningRequestResponse);
+
+    // GetSigningRequestDetails returns the details of a signing request.
+    rpc GetSigningRequestDetails (GetSigningRequestDetailsRequest) returns (GetSigningRequestDetailsResponse);
+
+    // CreateBatchPayment creates a batch payment.
+    rpc CreateBatchPayment (CreateBatchPaymentRequest) returns (CreateBatchPaymentResponse);
+
+    // GetBatchPaymentDetails returns the details of a batch payment.
+    rpc GetBatchPaymentDetails (GetBatchPaymentDetailsRequest) returns (GetBatchPaymentDetailsResponse);
+}
+
+// EVMGas is the gas fee settings for an EVM transaction.
+message EVMGas {
+    // max_fee is the maximum fee that the user is willing to pay, denominated in wei.
+    string max_fee = 1;
+    // max_priority_fee is the maximum priority fee that the user is willing to pay for EIP-1559 transactions, denominated in wei.
+    string max_priority_fee = 2;
+    // gas_limit is the maximum amount of gas that the tx is allowed to consume.
+    string gas_limit = 3;
+}
+
+message EVMSendNative {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // to is the address of the recipient.
+    string to = 3;
+    // amount is the amount of the native token to send, denominated in wei.
+    string amount = 4;
+    EVMGas gas_fee = 5;
+}
+
+message EVMSendERC20 {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // to is the address of the recipient.
+    string to = 3;
+    // token_contract_address is the address of the ERC20 token contract.
+    string token_contract_address = 4;
+    // amount is the amount of tokens to send.
+    string amount = 5;
+    EVMGas gas_fee = 6;
+}
+
+message EVMSendCustom {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // to is the address of the recipient.
+    string to = 3;
+    // amount is the amount of the native token to send, denominated in wei.
+    string amount = 4;
+    bytes input = 5;
+    EVMGas gas_fee = 6;
+}
+
+message BTCSendNative {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // amount is the amount of the native token to send, denominated in satoshis.
+    string amount = 3;
+    // network_fee is the network fee that the user is willing to pay, denominated in sat/b.
+    uint64 network_fee = 4;
+}
+
+message CreateSigningRequestRequest {
+    oneof type {
+        EVMSendNative evm_send_native = 1;
+        EVMSendERC20 evm_send_erc20 = 2;
+        EVMSendCustom evm_send_custom = 3;
+        BTCSendNative btc_send_native = 4;
+    }
+}
+
+message CreateSigningRequestResponse {
+    SigningRequest signing_request = 1;
+}
+
+message RejectSigningRequestRequest {
+    string uuid = 1;
+}
+
+message RejectSigningRequestResponse {
+
+}
+
+message GetSigningRequestDetailsRequest {
+    string uuid = 1;
+}
+
+message GetSigningRequestDetailsResponse {
+    SigningRequest signing_request = 1;
+}
+
+message SigningRequest {
+    enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_PENDING = 1;
+        STATUS_SUCCEEDED = 2;
+        STATUS_FAILED = 3;
+    }
+    // uuid is the unique identifier of the signing request.
+    string uuid = 1;
+    // status is the status of the signing request.
+    Status status = 2;
+    // failed_reason is the reason why the signing request failed, only set if status is STATUS_FAILED.
+    string failed_reason = 3;
+    // tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.
+    string tx_hash = 4;
+    // creation_timestamp is the timestamp when the signing request was created.
+    uint64 creation_timestamp = 5;
+    oneof type {
+        EVMSendNative evm_send_native = 6;
+        EVMSendERC20 evm_send_erc20 = 7;
+        EVMSendCustom evm_send_custom = 8;
+        BTCSendNative btc_send_native = 9;
+    }
+}
+
+message BatchPaymentRecipient {
+    // address is the address of the recipient.
+    string address = 1;
+    // amount is the amount of the tokens to send.
+    // For native tokens such as ether/btc, the amount is denominated in wei/satoshis.
+    // For ERC20 tokens you should use whole integer representation. [amount * 10^decimals]
+    // For bitcoin, the amount is denominated in satoshis.
+    string amount = 2;
+    // notes is a note for the transaction.
+    string notes = 3;
+}
+
+message EVMBatchSendNative {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // notes is a note for the transaction.
+    string notes = 3;
+    repeated BatchPaymentRecipient recipients = 4;
+}
+
+message EVMBatchSendERC20 {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // notes is a note for the transaction.
+    string notes = 3;
+    // token_contract_address is the address of the ERC20 token contract.
+    string token_contract_address = 4;
+    repeated BatchPaymentRecipient recipients = 5;
+}
+
+message BTCBatchSendNative {
+    // from is the address of the sender.
+    string from = 1;
+    // notes is a note for the transaction.
+    string notes = 2;
+    repeated BatchPaymentRecipient recipients = 3;
+}
+
+message CreateBatchPaymentRequest {
+    oneof type {
+        EVMBatchSendNative evm_batch_send_native = 1;
+        EVMBatchSendERC20 evm_batch_send_erc20 = 2;
+        BTCBatchSendNative btc_batch_send_native = 3;
+    }
+}
+
+message CreateBatchPaymentResponse {
+    BatchPayment batch_payment = 1;
+}
+
+message GetBatchPaymentDetailsRequest {
+    string uuid = 1;
+}
+
+message GetBatchPaymentDetailsResponse {
+    BatchPayment batch_payment = 1;
+}
+
+message BatchPayment {
+    enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_SUCCEEDED = 1;
+        STATUS_FAILED = 2;
+    }
+    // uuid is the unique identifier of the batch payment.
+    string uuid = 1;
+    // status is the status of the batch payment.
+    Status status = 2;
+    // failed_reason is the reason why the batch payment failed, only set if status is STATUS_FAILED.
+    string failed_reason = 3;
+    // creation_timestamp is the timestamp when the batch payment was created.
+    uint64 creation_timestamp = 4;
+    // approval_signing_request is the signing request that approves the tokens to be sent if needed.
+    SigningRequest approval_signing_request = 5;
+    // send_signing_request is the signing request that sends the batch payment.
+    SigningRequest send_signing_request = 6;
+    oneof type {
+        EVMBatchSendNative evm_batch_send_native = 7;
+        EVMBatchSendERC20 evm_batch_send_erc20 = 8;
+        BTCBatchSendNative btc_batch_send_native = 9;
+    }
+}
