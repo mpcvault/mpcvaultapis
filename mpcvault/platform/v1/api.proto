@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package mpcvault.platform.v1;
 
+import "google/protobuf/wrappers.proto";
+
 option go_package = "go.mpcvault.com/genproto/mpcvaultapis/platform/v1;platform";
 option java_multiple_files = true;
 option java_outer_classname = "PlatformProto";
@@ -42,11 +44,11 @@ service PlatformAPI {
 // EVMGas is the gas fee settings for an EVM transaction.
 message EVMGas {
     // max_fee is the maximum fee that the user is willing to pay, denominated in wei.
-    string max_fee = 1;
+    google.protobuf.StringValue max_fee = 1;
     // max_priority_fee is the maximum priority fee that the user is willing to pay for EIP-1559 transactions, denominated in wei.
-    string max_priority_fee = 2;
+    google.protobuf.StringValue max_priority_fee = 2;
     // gas_limit is the maximum amount of gas that the tx is allowed to consume.
-    string gas_limit = 3;
+    google.protobuf.StringValue gas_limit = 3;
 }
 
 message EVMSendNative {
@@ -55,8 +57,8 @@ message EVMSendNative {
     string from = 2;
     // to is the address of the recipient.
     string to = 3;
-    // amount is the amount of the native token to send, denominated in wei.
-    string amount = 4;
+    // value is the amount of the native token to send, denominated in wei.
+    string value = 4;
     EVMGas gas_fee = 5;
 }
 
@@ -79,8 +81,8 @@ message EVMSendCustom {
     string from = 2;
     // to is the address of the recipient.
     string to = 3;
-    // amount is the amount of the native token to send, denominated in wei.
-    string amount = 4;
+    // value is the amount of the native token to send, denominated in wei.
+    string value = 4;
     bytes input = 5;
     EVMGas gas_fee = 6;
 }
@@ -90,7 +92,7 @@ message BTCSendNative {
     string from = 1;
     // to is the address of the recipient.
     string to = 2;
-    // amount is the amount of the native token to send, denominated in satoshis.
+    // amount is the amount of the native token to send, denominated in satoshi.
     string amount = 3;
     // network_fee is the network fee that the user is willing to pay, denominated in sat/b.
     uint64 network_fee = 4;
@@ -154,47 +156,45 @@ message BatchPaymentRecipient {
     // address is the address of the recipient.
     string address = 1;
     // amount is the amount of the tokens to send.
-    // For native tokens such as ether/btc, the amount is denominated in wei/satoshis.
+    // For native tokens such as ether/btc, the amount is denominated in wei/satoshi.
     // For ERC20 tokens you should use whole integer representation. [amount * 10^decimals]
-    // For bitcoin, the amount is denominated in satoshis.
+    // For bitcoin, the amount is denominated in satoshi.
     string amount = 2;
-    // notes is a note for the transaction.
-    string notes = 3;
+    // notes is a note for this entry in the batch payment.
+    google.protobuf.StringValue notes = 3;
 }
 
 message EVMBatchSendNative {
     uint64 chain_id = 1;
     // from is the address of the sender.
     string from = 2;
-    // notes is a note for the transaction.
-    string notes = 3;
-    repeated BatchPaymentRecipient recipients = 4;
+    repeated BatchPaymentRecipient recipients = 3;
 }
 
 message EVMBatchSendERC20 {
     uint64 chain_id = 1;
     // from is the address of the sender.
     string from = 2;
-    // notes is a note for the transaction.
-    string notes = 3;
     // token_contract_address is the address of the ERC20 token contract.
-    string token_contract_address = 4;
-    repeated BatchPaymentRecipient recipients = 5;
+    string token_contract_address = 3;
+    repeated BatchPaymentRecipient recipients = 4;
 }
 
 message BTCBatchSendNative {
     // from is the address of the sender.
     string from = 1;
-    // notes is a note for the transaction.
-    string notes = 2;
-    repeated BatchPaymentRecipient recipients = 3;
+    repeated BatchPaymentRecipient recipients = 2;
 }
 
 message CreateBatchPaymentRequest {
+    // name is the name of the batch payment.
+    string name = 1;
+    // notes is the transaction notes for the batch payment.
+    google.protobuf.StringValue notes = 2;
     oneof type {
-        EVMBatchSendNative evm_batch_send_native = 1;
-        EVMBatchSendERC20 evm_batch_send_erc20 = 2;
-        BTCBatchSendNative btc_batch_send_native = 3;
+        EVMBatchSendNative evm_batch_send_native = 3;
+        EVMBatchSendERC20 evm_batch_send_erc20 = 4;
+        BTCBatchSendNative btc_batch_send_native = 5;
     }
 }
 
@@ -213,24 +213,29 @@ message GetBatchPaymentDetailsResponse {
 message BatchPayment {
     enum Status {
         STATUS_UNSPECIFIED = 0;
-        STATUS_SUCCEEDED = 1;
-        STATUS_FAILED = 2;
+        STATUS_PENDING = 1;
+        STATUS_SUCCEEDED = 2;
+        STATUS_FAILED = 3;
     }
     // uuid is the unique identifier of the batch payment.
     string uuid = 1;
+    // name is the name of the batch payment.
+    string name = 2;
+    // notes is the transaction notes for the batch payment.
+    string notes = 3;
     // status is the status of the batch payment.
-    Status status = 2;
+    Status status = 4;
     // failed_reason is the reason why the batch payment failed, only set if status is STATUS_FAILED.
-    string failed_reason = 3;
+    string failed_reason = 5;
     // creation_timestamp is the timestamp when the batch payment was created.
-    uint64 creation_timestamp = 4;
+    uint64 creation_timestamp = 6;
     // approval_signing_request is the signing request that approves the tokens to be sent if needed.
-    SigningRequest approval_signing_request = 5;
+    SigningRequest approval_signing_request = 7;
     // send_signing_request is the signing request that sends the batch payment.
-    SigningRequest send_signing_request = 6;
+    SigningRequest send_signing_request = 8;
     oneof type {
-        EVMBatchSendNative evm_batch_send_native = 7;
-        EVMBatchSendERC20 evm_batch_send_erc20 = 8;
-        BTCBatchSendNative btc_batch_send_native = 9;
+        EVMBatchSendNative evm_batch_send_native = 9;
+        EVMBatchSendERC20 evm_batch_send_erc20 = 10;
+        BTCBatchSendNative btc_batch_send_native = 11;
     }
 }
