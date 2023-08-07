@@ -105,6 +105,8 @@ message CreateSigningRequestRequest {
         EVMSendCustom evm_send_custom = 3;
         BTCSendNative btc_send_native = 4;
     }
+    // notes is the transaction notes for the signing request.
+    google.protobuf.StringValue notes = 1000;
 }
 
 message CreateSigningRequestResponse {
