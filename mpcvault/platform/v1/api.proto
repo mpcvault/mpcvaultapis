@@ -98,12 +98,135 @@ message BTCSendNative {
     uint64 network_fee = 4;
 }
 
+message TronSendNative {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // value is the amount of the native token to send, denominated in sun.
+    string value = 3;
+}
+
+message TronSendTRC10 {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // asset_name identifies the token to be sent.
+    string asset_name = 3;
+    // amount is the amount of coins to send.
+    string amount = 4;
+}
+
+message TronSendTRC20 {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // contract_address is the address of the token.
+    string contract_address = 3;
+    // amount is the amount of the token to send
+    string amount = 4;
+    // (optional) fee_limit is the maximum fee that the user is willing to pay, denominated in sun.
+    google.protobuf.StringValue fee_limit = 5;
+}
+
+message AptosGas {
+    // (optional) max_gas_amount is the maximum gas that the transaction can use, denominated in octa.
+    google.protobuf.StringValue max_gas_amount = 1;
+    // (optional) gas_unit_price is the price that the user is willing to pay, denominated in octa.
+    google.protobuf.StringValue gas_unit_price = 2;
+}
+
+message AptosSendNative {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // to is the address of the recipient.
+    string to = 3;
+    // value is the amount of the native token to send, denominated in octa.
+    string value = 4;
+    // (optional) specify the gas fee for the transaction.
+    AptosGas gas_fee = 5;
+}
+
+message AptosSendCoin {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // to is the address of the recipient.
+    string to = 3;
+    // coin_tag identifies the coin to be sent.
+    string coin_tag = 4;
+    // amount is the amount of coins to send.
+    string amount = 5;
+    // (optional) specify the gas fee for the transaction.
+    AptosGas gas_fee = 6;
+}
+
+message AptosSendCustom {
+    uint64 chain_id = 1;
+    // from is the address of the sender.
+    string from = 2;
+    // payload can be JSON or the bcs-serialized bytes of the transaction.
+    bytes payload = 3;
+    // (optional) specify the gas fee for the transaction.
+    AptosGas gas_fee = 4;
+}
+
+message SuiGas {
+    // (optional) budget is the maximum fee that the user is willing to pay, denominated in mist.
+    google.protobuf.StringValue budget = 1;
+    // (optional) price is the price that the user is willing to pay, denominated in mist.
+    google.protobuf.StringValue price = 2;
+}
+
+message SuiSendNative {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // value is the amount of the native token to send, denominated in mist.
+    string value = 3;
+    // (optional) specify the gas fee for the transaction.
+    SuiGas gas_fee = 4;
+}
+
+message SuiSendCoin {
+    // from is the address of the sender.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // coin_tag identifies the coin to be sent.
+    string coin_tag = 3;
+    // amount is the amount of coins to send.
+    string amount = 4;
+    // (optional) specify the gas fee for the transaction.
+    SuiGas gas_fee = 5;
+}
+
+message SuiSendCustom {
+    // from is the address of the sender.
+    string from = 1;
+    // payload can be JSON or the bcs-serialized bytes of the transaction.
+    bytes payload = 2;
+}
+
 message CreateSigningRequestRequest {
     oneof type {
         EVMSendNative evm_send_native = 1;
         EVMSendERC20 evm_send_erc20 = 2;
         EVMSendCustom evm_send_custom = 3;
         BTCSendNative btc_send_native = 4;
+        TronSendNative tron_send_native = 5;
+        TronSendTRC10 tron_send_trc10 = 6;
+        TronSendTRC20 tron_send_trc20 = 7;
+        AptosSendNative aptos_send_native = 8;
+        AptosSendCoin aptos_send_coin = 9;
+        AptosSendCustom aptos_send_custom = 10;
+        SuiSendNative sui_send_native = 11;
+        SuiSendCoin sui_send_coin = 12;
+        SuiSendCustom sui_send_custom = 13;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
