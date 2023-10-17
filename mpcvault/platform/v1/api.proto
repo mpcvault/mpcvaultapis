@@ -132,13 +132,15 @@ message TronSendTRC20 {
 }
 
 message AptosGas {
-    // (optional) max_gas_amount is the maximum gas that the transaction can use, denominated in octa.
+    // (optional) max_gas_amount is the maximum gas units that the transaction can use
+    // https://aptos.dev/concepts/gas-txn-fee/#unit-of-gas
     google.protobuf.StringValue max_gas_amount = 1;
     // (optional) gas_unit_price is the price that the user is willing to pay, denominated in octa.
     google.protobuf.StringValue gas_unit_price = 2;
 }
 
 message AptosSendNative {
+    // please use 1 for mainnet. MPCVault does not support Aptos testnet at the moment
     uint64 chain_id = 1;
     // from is the address of the sender.
     string from = 2;
