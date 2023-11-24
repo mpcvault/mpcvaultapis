@@ -70,7 +70,7 @@ message EVMSendERC20 {
     string to = 3;
     // token_contract_address is the address of the ERC20 token contract.
     string token_contract_address = 4;
-    // amount is the amount of tokens to send.
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 5;
     EVMGas gas_fee = 6;
 }
@@ -114,7 +114,7 @@ message TronSendTRC10 {
     string to = 2;
     // asset_name identifies the token to be sent.
     string asset_name = 3;
-    // amount is the amount of coins to send.
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
 }
 
@@ -125,7 +125,7 @@ message TronSendTRC20 {
     string to = 2;
     // contract_address is the address of the token.
     string contract_address = 3;
-    // amount is the amount of the token to send
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
     // (optional) fee_limit is the maximum fee that the user is willing to pay, denominated in sun.
     google.protobuf.StringValue fee_limit = 5;
@@ -160,7 +160,7 @@ message AptosSendCoin {
     string to = 3;
     // coin_tag identifies the coin to be sent.
     string coin_tag = 4;
-    // amount is the amount of coins to send.
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 5;
     // (optional) specify the gas fee for the transaction.
     AptosGas gas_fee = 6;
@@ -201,7 +201,7 @@ message SuiSendCoin {
     string to = 2;
     // coin_tag identifies the coin to be sent.
     string coin_tag = 3;
-    // amount is the amount of coins to send.
+    // amount is the amount of coins to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
     // (optional) specify the gas fee for the transaction.
     SuiGas gas_fee = 5;
@@ -230,7 +230,7 @@ message SolanaSendSPLToken {
     string to = 2;
     // mint_address is the address of the token.
     string mint_address = 3;
-    // amount is the amount of tokens to send.
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
 }
 
