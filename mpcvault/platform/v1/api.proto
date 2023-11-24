@@ -214,6 +214,26 @@ message SuiSendCustom {
     bytes payload = 2;
 }
 
+message SolanaSendNative {
+    // from is the account address of the sender.
+    string from = 1;
+    // to is the account address of the recipient.
+    string to = 2;
+    // value is the amount of the native token to send, denominated in lamports.
+    string value = 3;
+}
+
+message SolanaSendSPLToken {
+    // from is the account address of the sender.
+    string from = 1;
+    // to is the account address of the recipient.
+    string to = 2;
+    // mint_address is the address of the token.
+    string mint_address = 3;
+    // amount is the amount of tokens to send.
+    string amount = 4;
+}
+
 message CreateSigningRequestRequest {
     oneof type {
         EVMSendNative evm_send_native = 1;
@@ -229,6 +249,8 @@ message CreateSigningRequestRequest {
         SuiSendNative sui_send_native = 11;
         SuiSendCoin sui_send_coin = 12;
         SuiSendCustom sui_send_custom = 13;
+        SolanaSendNative solana_send_native = 14;
+        SolanaSendSPLToken solana_send_spl_token = 15;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
@@ -276,6 +298,17 @@ message SigningRequest {
         EVMSendERC20 evm_send_erc20 = 7;
         EVMSendCustom evm_send_custom = 8;
         BTCSendNative btc_send_native = 9;
+        TronSendNative tron_send_native = 10;
+        TronSendTRC10 tron_send_trc10 = 11;
+        TronSendTRC20 tron_send_trc20 = 12;
+        AptosSendNative aptos_send_native = 13;
+        AptosSendCoin aptos_send_coin = 14;
+        AptosSendCustom aptos_send_custom = 15;
+        SuiSendNative sui_send_native = 16;
+        SuiSendCoin sui_send_coin = 17;
+        SuiSendCustom sui_send_custom = 18;
+        SolanaSendNative solana_send_native = 19;
+        SolanaSendSPLToken solana_send_spl_token = 20;
     }
 }
 
