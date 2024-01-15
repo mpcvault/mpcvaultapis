@@ -17,6 +17,7 @@ syntax = "proto3";
 package mpcvault.platform.v1;
 
 import "google/protobuf/wrappers.proto";
+import "mpcvault/rpc/v1/status.proto";
 
 option go_package = "go.mpcvault.com/genproto/mpcvaultapis/platform/v1;platform";
 option java_multiple_files = true;
@@ -39,6 +40,68 @@ service PlatformAPI {
 
     // GetBatchPaymentDetails returns the details of a batch payment.
     rpc GetBatchPaymentDetails (GetBatchPaymentDetailsRequest) returns (GetBatchPaymentDetailsResponse);
+
+    // CreateWallet creates a wallet.
+    rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+
+    // SignSigningRequest sign a signing request.
+    rpc SignSigningRequest (SignSigningRequestRequest) returns (SignSigningRequestResponse);
+}
+
+message CreateWalletRequest {
+    string vault_uuid = 1;
+    string client_signer_public_key = 2;
+    AddressFormat address_format = 3;
+    string ref = 4;
+}
+enum AddressFormat {
+    ADDRESS_FORMAT_UNKNOWN = 0;
+    ADDRESS_FORMAT_EVM = 1;
+    ADDRESS_FORMAT_BITCOIN = 2;
+    ADDRESS_FORMAT_TRON = 3;
+    ADDRESS_FORMAT_APTOS = 4;
+    ADDRESS_FORMAT_SUI = 5;
+    ADDRESS_FORMAT_SOLANA = 6;
+}
+enum KeyType {
+    KEY_TYPE_UNSPECIFIED = 0;
+    KEY_TYPE_ECC_SECP256K1 = 1;
+    KEY_TYPE_ECC_ED25519 = 2;
+}
+message Wallet {
+    string vault_uuid = 1;
+    string client_signer_public_key = 2;
+    KeyType key_type = 3;
+    string key_path = 4;
+    string public_key = 5;
+    AddressFormat address_format = 6;
+    string address = 7;
+    string ref = 8;
+}
+message CreateWalletResponse {
+    Wallet details = 1;
+    mpcvault.rpc.v1.Status error = 2;
+}
+
+message SignSigningRequestRequest {
+    string uuid = 1;
+}
+message SignSigningRequestError {
+    enum ErrorCode {
+        // Enum unspecified.
+        ERROR_CODE_UNSPECIFIED = 0;
+        // Insufficient funds
+        ERROR_CODE_INSUFFICIENT_FUNDS = 1;
+        // Denied
+        ERROR_CODE_ALREADY_DENIED = 2;
+    }
+    ErrorCode error_code = 1;
+    string message = 2;
+}
+message SignSigningRequestResponse {
+    mpcvault.rpc.v1.Status error = 1;
+    // tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.
+    string tx_hash = 2;
 }
 
 // EVMGas is the gas fee settings for an EVM transaction.
@@ -254,10 +317,13 @@ message CreateSigningRequestRequest {
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
+    google.protobuf.StringValue vault_uuid = 1001;
+    google.protobuf.StringValue client_signer_public_key = 1002;
 }
 
 message CreateSigningRequestResponse {
     SigningRequest signing_request = 1;
+    mpcvault.rpc.v1.Status error = 2;
 }
 
 message RejectSigningRequestRequest {
@@ -265,7 +331,7 @@ message RejectSigningRequestRequest {
 }
 
 message RejectSigningRequestResponse {
-
+    mpcvault.rpc.v1.Status error = 1;
 }
 
 message GetSigningRequestDetailsRequest {
@@ -274,6 +340,7 @@ message GetSigningRequestDetailsRequest {
 
 message GetSigningRequestDetailsResponse {
     SigningRequest signing_request = 1;
+    mpcvault.rpc.v1.Status error = 2;
 }
 
 message SigningRequest {
@@ -309,7 +376,10 @@ message SigningRequest {
         SuiSendCustom sui_send_custom = 18;
         SolanaSendNative solana_send_native = 19;
         SolanaSendSPLToken solana_send_spl_token = 20;
+        CreateWalletRequest create_wallet = 21;
     }
+    google.protobuf.StringValue vault_uuid = 1000;
+    google.protobuf.StringValue client_signer_public_key = 1001;
 }
 
 message BatchPaymentRecipient {
@@ -360,6 +430,7 @@ message CreateBatchPaymentRequest {
 
 message CreateBatchPaymentResponse {
     BatchPayment batch_payment = 1;
+    mpcvault.rpc.v1.Status error = 2;
 }
 
 message GetBatchPaymentDetailsRequest {
@@ -368,6 +439,7 @@ message GetBatchPaymentDetailsRequest {
 
 message GetBatchPaymentDetailsResponse {
     BatchPayment batch_payment = 1;
+    mpcvault.rpc.v1.Status error = 2;
 }
 
 message BatchPayment {
