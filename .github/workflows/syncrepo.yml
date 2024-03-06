@@ -7,7 +7,7 @@ on:
 jobs:
   repo-sync:
     runs-on: ubuntu-latest
-
+    if: github.repository_owner == 'mpcvault'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -18,8 +18,8 @@ jobs:
           DESTINATION_USERNAME="mpcvault" # Destination GitHub username
           DESTINATION_REPOSITORY="mpcvaultapis" # Destination repository name
           TARGET_BRANCH="main" # Target branch in the destination repository
-          USER_EMAIL="info@mpcvault.com"
-          USER_NAME="lxjhk"
+          USER_EMAIL="info@no_reply.org"
+          USER_NAME="mpcvault"
 
           git rm -r --cached .
           git reset --hard
