@@ -7,7 +7,7 @@ on:
 jobs:
   repo-sync:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'mpcvault'
+    if: github.repository_owner != 'mpcvault'
     steps:
       - uses: actions/checkout@v2
         with:
