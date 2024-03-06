@@ -21,14 +21,30 @@ option java_multiple_files = true;
 option java_outer_classname = "ServiceErrorProto";
 option java_package = "com.mpcvault.platform.v1";
 
-
-message ServiceError {
-    enum ErrorCode {
-        ERROR_CODE_UNSPECIFIED = 0;
-        ERROR_CODE_ORG_SUBSCRIBED_PLAN_LIMIT_EXCEED = 1;
-        ERROR_CODE_ORG_SUBSCRIBED_PLAN_EXPIRED = 2;
-        ERROR_CODE_ORG_SUBSCRIBED_PLAN_NOT_SUPPORT = 3;
+message Error {
+    string message = 1;
+    oneof ErrorCode {
+        ServiceErrorCode service_error_code = 2;
+        ExecuteSigningRequestsErrorCode execute_signing_requests_error_code = 3;
     }
-    ErrorCode error_code = 1;
-    string message = 2;
+}
+
+enum ServiceErrorCode {
+    // Enum unspecified.
+    SERVICE_ERROR_CODE_UNSPECIFIED = 0;
+    // Organization subscribed plan limit exceed
+    SERVICE_ERROR_CODE_ORG_SUBSCRIBED_PLAN_LIMIT_EXCEED = 1;
+    // Organization subscribed plan expired
+    SERVICE_ERROR_CODE_ORG_SUBSCRIBED_PLAN_EXPIRED = 2;
+    // Organization subscribed plan not support
+    SERVICE_ERROR_CODE_ORG_SUBSCRIBED_PLAN_NOT_SUPPORT = 3;
+}
+
+enum ExecuteSigningRequestsErrorCode {
+    // Enum unspecified.
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_UNSPECIFIED = 0;
+    // Insufficient funds
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_INSUFFICIENT_FUNDS = 1;
+    // Denied
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_ALREADY_DENIED = 2;
 }

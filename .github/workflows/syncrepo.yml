@@ -12,34 +12,33 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
       - name: Pushes to another repository
         run: |
-            SOURCE_DIRECTORY="$(pwd)" # Source directory path
-            DESTINATION_USERNAME="mpcvault" # Destination GitHub username
-            DESTINATION_REPOSITORY="mpcvaultapis" # Destination repository name
-            TARGET_BRANCH="main" # Target branch in the destination repository
-            USER_EMAIL="info@mpcvault.com"
-            USER_NAME="lxjhk"
+          SOURCE_DIRECTORY="$(pwd)" # Source directory path
+          DESTINATION_USERNAME="mpcvault" # Destination GitHub username
+          DESTINATION_REPOSITORY="mpcvaultapis" # Destination repository name
+          TARGET_BRANCH="main" # Target branch in the destination repository
+          USER_EMAIL="info@mpcvault.com"
+          USER_NAME="lxjhk"
 
-            git rm -r --cached .
-            git reset --hard
+          git rm -r --cached .
+          git reset --hard
 
-            # Set user information
-            git config --global user.email "$USER_EMAIL"
-            git config --global user.name "$USER_NAME"
-            git config --unset http.https://github.com/.extraheader
+          # Set user information
+          git config --global user.email "$USER_EMAIL"
+          git config --global user.name "$USER_NAME"
+          git config --unset http.https://github.com/.extraheader
 
-            GIT_CMD_REPOSITORY="https://$USER_NAME:${{ secrets.MPCVAULT_EXTERN_SYNC_GITHUB_TOKEN }}@github.com/$DESTINATION_USERNAME/$DESTINATION_REPOSITORY.git"
-            
-            {
-              git clone --single-branch --depth 1 --branch "$TARGET_BRANCH" "$GIT_CMD_REPOSITORY"
-            } || {
-              echo "::error::Could not clone the destination repository. Command:"
-              echo "::error::git clone --single-branch --branch $TARGET_BRANCH $GIT_CMD_REPOSITORY"
-              exit 1
-            }
+          GIT_CMD_REPOSITORY="https://$USER_NAME:${{ secrets.MPCVAULT_EXTERN_SYNC_GITHUB_TOKEN }}@github.com/$DESTINATION_USERNAME/$DESTINATION_REPOSITORY.git"
 
-            git remote remove origin
-            git remote add origin $GIT_CMD_REPOSITORY
-            git push -f origin main
+          {
+            git clone --single-branch --depth 1 --branch "$TARGET_BRANCH" "$GIT_CMD_REPOSITORY"
+          } || {
+            echo "::error::Could not clone the destination repository. Command:"
+            echo "::error::git clone --single-branch --branch $TARGET_BRANCH $GIT_CMD_REPOSITORY"
+            exit 1
+          }
+
+          git remote remove origin
+          git remote add origin $GIT_CMD_REPOSITORY
+          git push -f origin main
