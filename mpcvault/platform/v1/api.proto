@@ -48,6 +48,27 @@ service PlatformAPI {
 
     // ExecuteSigningRequests signs a signing request. The signing request can be created via the API or manually.
     rpc ExecuteSigningRequests (ExecuteSigningRequestsRequest) returns (ExecuteSigningRequestsResponse);
+
+    // GetBalance returns the details of a asset balance.
+    rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse);
+}
+
+message GetBalanceRequest {
+    // network_type is the type of the network.
+    NetworkType network_type = 1;
+    // (optional) chain_id is the chain id of the network.
+    google.protobuf.Int64Value chain_id = 2;
+    // wallet_address this is the wallet address.
+    string wallet_address = 3;
+    // (optional) token_address this is the token address
+    // if not set, it will return the balance of the native token.
+    google.protobuf.StringValue token_address = 4;
+}
+
+message GetBalanceResponse {
+    // The balance is in the smallest denomination.
+    string balance = 1;
+    Error error = 2;
 }
 
 message CreateWalletRequest {
