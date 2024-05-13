@@ -1,19 +1,3 @@
-// const express = require('express')
-// const app = express()
-// const port = 4202
-
-// app.get('/', (req, res) => {
-//     res.send('Hello World!');
-//     console.log("Hello World");
-// })
-
-// let cors = require('cors');
-// app.use(cors())
-
-// app.listen(port, () => {
-//     console.log(`Example app listening on port ${port}`)
-// })
-
 const API_TOKEN = "YOUR-API-TOKEN";
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
@@ -40,7 +24,7 @@ const EVMGas = root.lookupType('mpcvault.platform.v1.EVMGas');
 
 // Create EVMGas
 const gasObject = {
-    maxFee: {value: '100000'}, // 使用google.protobuf.StringValue来设置值
+    maxFee: {value: '100000'}, // use google.protobuf.StringValue
     maxPriorityFee: {value: '50000'},
     gasLimit: {value: '21000'}
 };
@@ -52,7 +36,7 @@ const CreateSigningRequestRequest = {
         "from": "0x544845005e42fE00a3C0E9735EEEC25Aa068b428", // your wallet address on MPCVault
         "to": "", // leave empty for contract creation
         "value": "0", // amount of tokens to send, in this case 0
-        "input": [], // contract bytecode
+        "input": [], // contract byte code
         "gas_fee": evmGas, // you can leave this empty to use default gas settings
         "nonce": {value: '0'}, // you can leave this empty to use default nonce
     }
@@ -65,6 +49,5 @@ client.CreateSigningRequest(CreateSigningRequestRequest, metadata, (error, respo
     } else {
         console.log('=============response==================');
         console.log(response);
-        // 使用 protobufjs 的 Message.decode 方法对响应进行反序列化
     }
 });
