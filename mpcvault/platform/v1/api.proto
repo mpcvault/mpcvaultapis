@@ -229,6 +229,7 @@ message EVMSendNative {
     string to = 3;
     // value is the amount of the native token to send, denominated in wei.
     string value = 4;
+    // when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 5;
     // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
     // when chain_id is a custom chain, this field is required.
@@ -247,6 +248,7 @@ message EVMSendERC20 {
     // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     // We will use the contract's decimals to convert the amount.
     string amount = 5;
+    // when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
     // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
     // when chain_id is a custom chain, this field is required.
@@ -263,6 +265,7 @@ message EVMSendCustom {
     // value is the amount of the native token to send, denominated in wei.
     string value = 4;
     bytes input = 5;
+    // when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
     // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
     // when chain_id is a custom chain, this field is required.
