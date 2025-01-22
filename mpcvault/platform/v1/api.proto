@@ -421,6 +421,13 @@ message SolanaSendSPLToken {
     string amount = 4;
 }
 
+message SolanaSendCustom {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    // max length is 5.
+    repeated string tx_base64 = 2;
+}
+
 message CreateSigningRequestRequest {
     // type is the type of the signing request. It is a oneof field.
     oneof type {
@@ -443,6 +450,7 @@ message CreateSigningRequestRequest {
         AptosMessage aptos_message = 17;
         SolanaMessage solana_message = 18;
         RawMessage raw_message = 19;
+        SolanaSendCustom solana_send_custom = 20;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
@@ -517,6 +525,7 @@ message SigningRequest {
         AptosMessage aptos_message = 23;
         SolanaMessage solana_message = 24;
         RawMessage raw_message = 25;
+        SolanaSendCustom solana_send_custom = 26;
     }
     // vault_uuid is the UUID of the vault that the signing request was created in.
     google.protobuf.StringValue vault_uuid = 1000;
