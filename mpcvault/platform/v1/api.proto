@@ -51,6 +51,42 @@ service PlatformAPI {
 
     // GetBalance returns the details of a asset balance.
     rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse);
+
+    // GetWalletInfo returns the details of a wallet.
+    rpc GetWalletInfo (GetWalletInfoRequest) returns (GetWalletInfoResponse);
+
+    // GetWalletList returns the wallets details.
+    rpc GetWalletList (GetWalletListRequest) returns (GetWalletListResponse);
+}
+
+message GetWalletInfoRequest {
+    oneof type {
+        // address is the address of the wallet in the network.
+        string address = 100;
+        // ref is unique identifier for the wallet as configured by the user.
+        string ref = 101;
+    }
+}
+
+message GetWalletInfoResponse {
+    Wallet details = 1;
+    Error error = 2;
+}
+
+message GetWalletListRequest {
+    // vault_uuid is the UUID of the vault that the wallet was created in.
+    string vault_uuid = 1;
+    // (optional) page is the page number.
+    // default: 1
+    google.protobuf.Int64Value page = 2;
+    // (optional) limit is the number of wallets to return.
+    // default: 100, max: 1000
+    google.protobuf.Int64Value limit = 3;
+}
+
+message GetWalletListResponse {
+    repeated Wallet details_list = 1;
+    Error error = 2;
 }
 
 message GetBalanceRequest {
@@ -92,6 +128,7 @@ enum NetworkType {
     NETWORK_TYPE_APTOS = 4;
     NETWORK_TYPE_SUI = 5;
     NETWORK_TYPE_SOLANA = 6;
+    NETWORK_TYPE_TON = 7;
 }
 enum KeyType {
     KEY_TYPE_UNSPECIFIED = 0;
@@ -99,6 +136,12 @@ enum KeyType {
     KEY_TYPE_ECC_ED25519 = 2;
 }
 message Wallet {
+    enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_PENDING = 1;
+        STATUS_ACTIVE = 2;
+        STATUS_ARCHIVED = 3;
+    }
     // vault_uuid is the UUID of the vault that the wallet was created in.
     string vault_uuid = 1;
     // key_type is the type of the key.
@@ -113,6 +156,7 @@ message Wallet {
     string address = 6;
     // ref is unique identifier for the wallet as configured by the user.
     string ref = 7;
+    Status status = 8;
 }
 message CreateWalletResponse {
     Wallet details = 1;
@@ -182,6 +226,28 @@ message AptosMessage {
 }
 
 message SolanaMessage {
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        TYPE_DEFAULT = 1;
+    }
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    Type type = 2;
+    bytes content = 3;
+}
+
+message SuiMessage {
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        TYPE_DEFAULT = 1;
+    }
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    Type type = 2;
+    bytes content = 3;
+}
+
+message TonMessage {
     enum Type {
         TYPE_UNSPECIFIED = 0;
         TYPE_DEFAULT = 1;
@@ -421,6 +487,37 @@ message SolanaSendSPLToken {
     string amount = 4;
 }
 
+message TonSendNative {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // value is the amount of the native token to send, denominated in nanos.
+    string value = 3;
+    // (optional) max len is 50.
+    string comment = 4;
+}
+
+message TonSendToken {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    // to is the address of the recipient.
+    string to = 2;
+    // mint_address is the address of the token.
+    string mint_address = 3;
+    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    string amount = 4;
+    // (optional) max len is 50.
+    string comment = 5;
+}
+
+message TonSendCustom {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    // payload can be JSON of the transaction. Same as ton-connect.
+    bytes payload = 2;
+}
+
 message SolanaSendCustom {
     // from is the sender wallet address. It has to be in this vault.
     string from = 1;
@@ -450,7 +547,12 @@ message CreateSigningRequestRequest {
         AptosMessage aptos_message = 17;
         SolanaMessage solana_message = 18;
         RawMessage raw_message = 19;
-        SolanaSendCustom solana_send_custom = 20;
+        SuiMessage sui_message = 20;
+        TonSendNative ton_send_native = 21;
+        TonSendToken ton_send_token = 22;
+        TonSendCustom ton_send_custom = 23;
+        TonMessage ton_message = 24;
+        SolanaSendCustom solana_send_custom = 25;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
@@ -525,7 +627,12 @@ message SigningRequest {
         AptosMessage aptos_message = 23;
         SolanaMessage solana_message = 24;
         RawMessage raw_message = 25;
-        SolanaSendCustom solana_send_custom = 26;
+        SuiMessage sui_message = 26;
+        TonSendNative ton_send_native = 27;
+        TonSendToken ton_send_token = 28;
+        TonSendCustom ton_send_custom = 29;
+        TonMessage ton_message = 30;
+        SolanaSendCustom solana_send_custom = 31;
     }
     // vault_uuid is the UUID of the vault that the signing request was created in.
     google.protobuf.StringValue vault_uuid = 1000;
@@ -567,6 +674,20 @@ message BTCBatchSendNative {
     repeated BatchPaymentRecipient recipients = 2;
 }
 
+message SUIBatchSendNative {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    repeated BatchPaymentRecipient recipients = 2;
+}
+
+message SUIBatchSendCoin {
+    // from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    // coin_tag identifies the coin to be sent.
+    string coin_tag = 2;
+    repeated BatchPaymentRecipient recipients = 3;
+}
+
 message CreateBatchPaymentRequest {
     // name is the name of the batch payment.
     string name = 1;
@@ -576,6 +697,8 @@ message CreateBatchPaymentRequest {
         EVMBatchSendNative evm_batch_send_native = 3;
         EVMBatchSendERC20 evm_batch_send_erc20 = 4;
         BTCBatchSendNative btc_batch_send_native = 5;
+        SUIBatchSendNative sui_batch_send_native = 6;
+        SUIBatchSendCoin sui_batch_send_coin = 7;
     }
 }
 
@@ -620,5 +743,7 @@ message BatchPayment {
         EVMBatchSendNative evm_batch_send_native = 9;
         EVMBatchSendERC20 evm_batch_send_erc20 = 10;
         BTCBatchSendNative btc_batch_send_native = 11;
+        SUIBatchSendNative sui_batch_send_native = 12;
+        SUIBatchSendCoin sui_batch_send_coin = 13;
     }
 }
