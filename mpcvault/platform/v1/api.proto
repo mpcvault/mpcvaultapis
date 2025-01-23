@@ -119,6 +119,9 @@ message CreateWalletRequest {
     // (optional) ref is the customer reference field for the wallet. It has to be unique if not empty.
     // max length is 500 characters.
     string ref = 4;
+    // (optional) name is the name for the wallet. 
+    // max length is 85 characters.
+    string name = 5;
 }
 enum NetworkType {
     NETWORK_TYPE_UNKNOWN = 0;
@@ -157,6 +160,7 @@ message Wallet {
     // ref is unique identifier for the wallet as configured by the user.
     string ref = 7;
     Status status = 8;
+    string name = 9;
 }
 message CreateWalletResponse {
     Wallet details = 1;
