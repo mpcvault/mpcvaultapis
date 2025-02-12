@@ -638,6 +638,8 @@ message SigningRequest {
         TonMessage ton_message = 30;
         SolanaSendCustom solana_send_custom = 31;
     }
+    // notes is the transaction notes for the signing request.
+    google.protobuf.StringValue notes = 999;
     // vault_uuid is the UUID of the vault that the signing request was created in.
     google.protobuf.StringValue vault_uuid = 1000;
     // callback_client_signer_public_key is the public key of the api client signer for callback. This field can be empty.
