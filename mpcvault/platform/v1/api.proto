@@ -57,6 +57,13 @@ service PlatformAPI {
 
     // GetWalletList returns the wallets details.
     rpc GetWalletList (GetWalletListRequest) returns (GetWalletListResponse);
+
+    // GetSigningRequestList returns the signing requests details.
+    // It will contain the signing request status and the transaction hash if the signing request was completed.
+    rpc GetSigningRequestList (GetSigningRequestListRequest) returns (GetSigningRequestListResponse);
+
+    // Resimulation returns the transaction simulation.
+    rpc Resimulation (ResimulationRequest) returns (ResimulationResponse);
 }
 
 message GetWalletInfoRequest {
@@ -644,6 +651,20 @@ message SigningRequest {
     google.protobuf.StringValue vault_uuid = 1000;
     // callback_client_signer_public_key is the public key of the api client signer for callback. This field can be empty.
     google.protobuf.StringValue callback_client_signer_public_key = 1001;
+    // simulation is the transaction simulation for the signing request.
+    bytes simulation = 1002;
+    // evm_input_data_decode is the evm transaction input data decode for the signing request.
+    EVMInputDataDecode evm_input_data_decode = 1003;
+}
+
+message EVMInputDataDecode {
+    message Argument {
+        string name = 1;
+        string type = 2;
+        string data = 3;
+    }
+    string function = 1;
+    repeated Argument args = 2;
 }
 
 message BatchPaymentRecipient {
@@ -752,4 +773,31 @@ message BatchPayment {
         SUIBatchSendNative sui_batch_send_native = 12;
         SUIBatchSendCoin sui_batch_send_coin = 13;
     }
+}
+
+message GetSigningRequestListRequest {
+    enum SortOrder {
+        SORT_ORDER_DESC = 0;
+        SORT_ORDER_ASC = 1;
+    }
+    string vault_uuid = 1;
+    // page defaults to 0
+    uint64 page = 2;
+    // page_size defaults to 10, max to 100
+    uint64 page_size = 3;
+    SortOrder sort_order = 4;
+}
+
+message GetSigningRequestListResponse {
+    repeated SigningRequest signing_request = 1;
+    Error error = 2;
+}
+
+message ResimulationRequest {
+    string signing_request_uuid = 1;
+}
+
+message ResimulationResponse {
+    bytes simulation = 1;
+    Error error = 2;
 }
