@@ -485,6 +485,8 @@ message SolanaSendNative {
     string to = 2;
     // value is the amount of the native token to send, denominated in lamports.
     string value = 3;
+    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    uint64 chain_id = 4;
 }
 
 message SolanaSendSPLToken {
@@ -496,6 +498,8 @@ message SolanaSendSPLToken {
     string mint_address = 3;
     // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
+    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    uint64 chain_id = 5;
 }
 
 message TonSendNative {
@@ -534,6 +538,8 @@ message SolanaSendCustom {
     string from = 1;
     // max length is 5.
     repeated string tx_base64 = 2;
+    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    uint64 chain_id = 3;
 }
 
 message CreateSigningRequestRequest {
@@ -780,16 +786,19 @@ message GetSigningRequestListRequest {
         SORT_ORDER_DESC = 0;
         SORT_ORDER_ASC = 1;
     }
+    // vault_uuid is the UUID of the vault that the signingRequest was created in.
     string vault_uuid = 1;
-    // page defaults to 0
-    uint64 page = 2;
-    // page_size defaults to 10, max to 100
-    uint64 page_size = 3;
+    // (optional) page is the page number.
+    // default: 1
+    google.protobuf.Int64Value page = 2;
+    // (optional) limit is the number of signingRequests to return.
+    // default: 10, max: 100
+    google.protobuf.Int64Value limit = 3;
     SortOrder sort_order = 4;
 }
 
 message GetSigningRequestListResponse {
-    repeated SigningRequest signing_request = 1;
+    repeated SigningRequest signing_requests = 1;
     Error error = 2;
 }
 
