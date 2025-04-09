@@ -1,8 +1,8 @@
-const API_TOKEN = "YOUR-API-TOKEN";
+const API_TOKEN = "6IH1AjBTe146xf9xYQb30jZSpvAyllySRWpvkVT6Yt0=";
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 const protobuf = require('protobufjs');
-const protoPath = './proto/api.proto';
+const protoPath = './mpcvault/platform/v1/api.proto';
 const packageDefinition = protoLoader.loadSync(protoPath, {
     keepCase: true,
     longs: String,
@@ -51,3 +51,25 @@ client.CreateSigningRequest(CreateSigningRequestRequest, metadata, (error, respo
         console.log(response);
     }
 });
+
+const fetch = require('node-fetch');
+
+async function httpDemo() {
+    const method = "createSigningRequest";
+    const url = `https://api.mpcvault.com/v1/${method}`;
+  
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Mtoken': API_TOKEN
+      },
+      body: JSON.stringify(CreateSigningRequestRequest)
+    });
+  
+    if (!response.ok) {
+      throw new Error(`HTTP Error ${response.status}`);
+    }
+  
+    return response.json();
+  }

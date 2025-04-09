@@ -17,6 +17,7 @@ syntax = "proto3";
 package mpcvault.platform.v1;
 
 import "google/protobuf/wrappers.proto";
+import "google/api/annotations.proto";
 import "mpcvault/platform/v1/error.proto";
 
 option go_package = "go.mpcvault.com/genproto/mpcvaultapis/platform/v1;platform";
@@ -27,43 +28,103 @@ option java_package = "com.mpcvault.platform.v1";
 
 service PlatformAPI {
     // CreateSigningRequest creates a signing request. The signing request can be completed using the MPCVault mobile app or using the API client signer.
-    rpc CreateSigningRequest (CreateSigningRequestRequest) returns (CreateSigningRequestResponse);
+    rpc CreateSigningRequest (CreateSigningRequestRequest) returns (CreateSigningRequestResponse){
+        option (google.api.http) = {
+            post: "/v1/createSigningRequest"
+            body: "*"
+        };
+    };
 
     // RejectSigningRequest rejects a signing request. Once a signing request is rejected, it cannot be re-opened.
-    rpc RejectSigningRequest (RejectSigningRequestRequest) returns (RejectSigningRequestResponse);
+    rpc RejectSigningRequest (RejectSigningRequestRequest) returns (RejectSigningRequestResponse){
+        option (google.api.http) = {
+            post: "/v1/rejectSigningRequest"
+            body: "*"
+        };
+    };
 
     // GetSigningRequestDetails returns the details of a signing request.
     // It will contain the signing request status and the transaction hash if the signing request was completed.
-    rpc GetSigningRequestDetails (GetSigningRequestDetailsRequest) returns (GetSigningRequestDetailsResponse);
+    rpc GetSigningRequestDetails (GetSigningRequestDetailsRequest) returns (GetSigningRequestDetailsResponse){
+        option (google.api.http) = {
+            post: "/v1/getSigningRequestDetails"
+            body: "*"
+        };
+    };
 
     // CreateBatchPayment creates a batch payment. You will need to complete the batch payment using the MPCVault web app.
-    rpc CreateBatchPayment (CreateBatchPaymentRequest) returns (CreateBatchPaymentResponse);
+    rpc CreateBatchPayment (CreateBatchPaymentRequest) returns (CreateBatchPaymentResponse){
+        option (google.api.http) = {
+            post: "/v1/createBatchPayment"
+            body: "*"
+        };
+    };
 
     // GetBatchPaymentDetails returns the details of a batch payment including the signing requests.
-    rpc GetBatchPaymentDetails (GetBatchPaymentDetailsRequest) returns (GetBatchPaymentDetailsResponse);
+    rpc GetBatchPaymentDetails (GetBatchPaymentDetailsRequest) returns (GetBatchPaymentDetailsResponse){
+        option (google.api.http) = {
+            post: "/v1/getBatchPaymentDetails"
+            body: "*"
+        };
+    };
 
     // CreateWallet creates a wallet. Wallets created will be EOA wallets. You are responsible for completing a sanity tests before using the wallet.
     // While the response contains the public key, you are strongly discouraged from using it to generate the wallet address yourself. Instead, use the address returned in the response.
-    rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+    rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse){
+        option (google.api.http) = {
+            post: "/v1/createWallet"
+            body: "*"
+        };
+    };
 
     // ExecuteSigningRequests signs a signing request. The signing request can be created via the API or manually.
-    rpc ExecuteSigningRequests (ExecuteSigningRequestsRequest) returns (ExecuteSigningRequestsResponse);
+    rpc ExecuteSigningRequests (ExecuteSigningRequestsRequest) returns (ExecuteSigningRequestsResponse){
+        option (google.api.http) = {
+            post: "/v1/executeSigningRequests"
+            body: "*"
+        };
+    };
 
     // GetBalance returns the details of a asset balance.
-    rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse);
+    rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse){
+        option (google.api.http) = {
+            post: "/v1/getBalance"
+            body: "*"
+        };
+    };
 
     // GetWalletInfo returns the details of a wallet.
-    rpc GetWalletInfo (GetWalletInfoRequest) returns (GetWalletInfoResponse);
+    rpc GetWalletInfo (GetWalletInfoRequest) returns (GetWalletInfoResponse){
+        option (google.api.http) = {
+            post: "/v1/getWalletInfo"
+            body: "*"
+        };
+    };
 
     // GetWalletList returns the wallets details.
-    rpc GetWalletList (GetWalletListRequest) returns (GetWalletListResponse);
+    rpc GetWalletList (GetWalletListRequest) returns (GetWalletListResponse){
+        option (google.api.http) = {
+            post: "/v1/getWalletList"
+            body: "*"
+        };
+    };
 
     // GetSigningRequestList returns the signing requests details.
     // It will contain the signing request status and the transaction hash if the signing request was completed.
-    rpc GetSigningRequestList (GetSigningRequestListRequest) returns (GetSigningRequestListResponse);
+    rpc GetSigningRequestList (GetSigningRequestListRequest) returns (GetSigningRequestListResponse){
+        option (google.api.http) = {
+            post: "/v1/getSigningRequestList"
+            body: "*"
+        };
+    };
 
     // Resimulation returns the transaction simulation.
-    rpc Resimulation (ResimulationRequest) returns (ResimulationResponse);
+    rpc Resimulation (ResimulationRequest) returns (ResimulationResponse){
+        option (google.api.http) = {
+            post: "/v1/resimulation"
+            body: "*"
+        };
+    };
 }
 
 message GetWalletInfoRequest {
@@ -570,6 +631,9 @@ message CreateSigningRequestRequest {
         TonSendCustom ton_send_custom = 23;
         TonMessage ton_message = 24;
         SolanaSendCustom solana_send_custom = 25;
+        SolanaSendNative sonic_svm_send_native = 26;
+        SolanaSendSPLToken sonic_svm_send_spl_token = 27;
+        SolanaSendCustom sonic_svm_send_custom = 28;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
@@ -650,6 +714,9 @@ message SigningRequest {
         TonSendCustom ton_send_custom = 29;
         TonMessage ton_message = 30;
         SolanaSendCustom solana_send_custom = 31;
+        SolanaSendNative sonic_svm_send_native = 32;
+        SolanaSendSPLToken sonic_svm_send_spl_token = 33;
+        SolanaSendCustom sonic_svm_send_custom = 34;
     }
     // notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 999;
