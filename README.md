@@ -17,7 +17,7 @@ As an example, if you aim to compile GoLang bindings, you should first install G
 Afterwards, you can compile the GoLang bindings using the command given below:
 
 ```bash
-protoc --go_out=./genproto --go_opt=paths=source_relative \
-    --go-grpc_out=./genproto --go-grpc_opt=paths=source_relative \
+protoc -I . --go_out=plugins=grpc:./genproto --go_opt=paths=source_relative \
+    --grpc-gateway_out=./genproto --grpc-gateway_opt=paths=source_relative \
     mpcvault/platform/v1/*.proto
 ```
