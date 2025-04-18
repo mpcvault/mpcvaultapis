@@ -129,9 +129,9 @@ service PlatformAPI {
 
 message GetWalletInfoRequest {
     oneof type {
-        // address is the address of the wallet in the network.
+        //comment:address is the address of the wallet in the network.
         string address = 100;
-        // ref is unique identifier for the wallet as configured by the user.
+        //comment:ref is unique identifier for the wallet as configured by the user.
         string ref = 101;
     }
 }
@@ -142,53 +142,75 @@ message GetWalletInfoResponse {
 }
 
 message GetWalletListRequest {
-    // vault_uuid is the UUID of the vault that the wallet was created in.
+    //required:true
+    //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //default:null
+    //comment:vault_uuid is the UUID of the vault that the wallet was created in.
     string vault_uuid = 1;
-    // (optional) page is the page number.
-    // default: 1
+    //symbol_value:"1"
+    //default: 1
+    //comment:page is the page number.
     google.protobuf.Int64Value page = 2;
-    // (optional) limit is the number of wallets to return.
-    // default: 100, max: 1000
+    //symbol_value:"100"
+    //default:100
+    //max:100
+    //comment:limit is the number of wallets to return.
     google.protobuf.Int64Value limit = 3;
 }
 
 message GetWalletListResponse {
+    //symbol_value:"[{address: 0x71C7656EC7ab88b098defB752345回到家旧旧d s f r, name: test wallet, status: STATUS_ACTIVE}]"
+    //comment:details_list is the list of wallets.
     repeated Wallet details_list = 1;
     Error error = 2;
 }
 
 message GetBalanceRequest {
-    // network_type is the type of the network.
+    //required:true
+    //symbol_value:"1"
+    //default:null
+    //comment:network_type is the type of the network.
     NetworkType network_type = 1;
-    // (optional) chain_id is the chain id of the network.
+    //symbol_value:"137"
+    //default:null
+    //comment chain_id is the chain id of the network.
     google.protobuf.Int64Value chain_id = 2;
-    // wallet_address this is the wallet address.
+    //required:true
+    //symbol_value:"8HrKVJeFNGSJ2T2wSU6MxfMvua2MYgwH1FbRsdfrgthj"
+    //default:null
+    //comment:wallet_address this is the wallet address.
     string wallet_address = 3;
-    // (optional) token_address this is the token address
-    // if not set, it will return the balance of the native token.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //default:null
+    //comment:token_address this is the token address,if not set, it will return the balance of the native token.
     google.protobuf.StringValue token_address = 4;
 }
 
 message GetBalanceResponse {
-    // The balance is in the smallest denomination.
+    //symbol_value:0.12128
+    //comment:The balance is in the smallest denomination.
     string balance = 1;
+    //comment:The error is null when success.
     Error error = 2;
 }
 
 message CreateWalletRequest {
-    // vault_uuid is the UUID of the vault that the wallet will be created in.
-    // You can find it in the settings page of your vault on the web.
+    //required:true
+    //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:vault_uuid is the UUID of the vault that the wallet will be created in.You can find it in the settings page of your vault on the web.
     string vault_uuid = 1;
-    // callback_client_signer_public_key is the public key of the api client signer.
-    // It is used to identify the where we should send the callback to.
+    //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRsdeghjcmkidagdk test"
+    //comment:callback_client_signer_public_key is the public key of the api client signer. It is used to identify the where we should send the callback to.
     string callback_client_signer_public_key = 2;
-    // network_type is the type of the network.
+    //required:true
+    //symbol_value:"1"
+    //comment:network_type is the type of the network.
     NetworkType network_type = 3;
-    // (optional) ref is the customer reference field for the wallet. It has to be unique if not empty.
-    // max length is 500 characters.
+    //symbol_value:"0x4321567890abcdef4321567890abcdef123456"
+    //comment:ref is the customer reference field for the wallet. It has to be unique if not empty.max length is 500 characters.
     string ref = 4;
-    // (optional) name is the name for the wallet. 
-    // max length is 85 characters.
+    //symbol_value:"test wallet"
+    //comment:name is the name for the wallet.  max length is 85 characters.
     string name = 5;
 }
 enum NetworkType {
@@ -213,21 +235,32 @@ message Wallet {
         STATUS_ACTIVE = 2;
         STATUS_ARCHIVED = 3;
     }
-    // vault_uuid is the UUID of the vault that the wallet was created in.
+    //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:vault_uuid is the UUID of the vault that the wallet was created in.
     string vault_uuid = 1;
-    // key_type is the type of the key.
+    //symbol_value:"1"
+    //comment:key_type is the type of the key.
     KeyType key_type = 2;
-    // key_path is the path of the key.
+    //symbol_value:"path/to/key"
+    //comment:key_path is the path of the key.
     string key_path = 3;
-    // public_key is the public key of the key.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:public_key is the public key of the key.
     bytes public_key = 4;
-    // network_type is the type of the network.
+    //symbol_value:"1"
+    //comment:network_type is the type of the network.
     NetworkType network_type = 5;
-    // address is the address of the wallet in the network.
+    //symbol_value:"8HrKVJeFNGSJ2T2wSU6MxfMvua2MYgwH1FbRs d f r g t h j"
+    //comment:address is the address of the wallet in the network.
     string address = 6;
-    // ref is unique identifier for the wallet as configured by the user.
+    //symbol_value:"0x4321567890abcdef4321567890abcdef123456"
+    //comment:ref is unique identifier for the wallet as configured by the user.
     string ref = 7;
+    //symbol_value:"1"
+    //comment:status is the status of the wallet.
     Status status = 8;
+    //symbol_value:"test wallet "
+    //comment:name is the name for the wallet.
     string name = 9;
 }
 message CreateWalletResponse {
@@ -236,16 +269,17 @@ message CreateWalletResponse {
 }
 
 message ExecuteSigningRequestsRequest {
-    // uuid is the UUID of the signing request.
-    // Currently only signing requests of API wallets are supported.
+    //required:true
+    //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:uuid is the UUID of the signing request. Currently only signing requests of API wallets are supported.
     string uuid = 1;
 }
 message ExecuteSigningRequestsResponse {
     Error error = 1;
-    // tx_hash is the hash of the signed transaction, only set if status is STATUS_SUCCEEDED.
-    // This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
+    //symbol_value:"3Eq21vXNB5s86c62bVuUfTerseghjkuUqRPBmGRJhyTA"
+    //comment:tx_hash is the hash of the signed transaction, only set if status is STATUS_SUCCEEDED.This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
     string tx_hash = 2;
-    // signatures is the signatures of the raw message, only set if status is STATUS_SUCCEEDED.
+    //signatures is the signatures of the raw message, only set if status is STATUS_SUCCEEDED.
     SignatureContainer signatures = 3;
 }
 
@@ -253,8 +287,8 @@ message SignatureContainer {
     message SignResponse {
         oneof signature {
             ECDSASignature ecdsa_signature = 1;
-            // Ed25519 signatures are 64 bytes long, sig = R_bytes || s_bytes
-            // R_bytes is the canonical 32-byte encoding of v, according to RFC 8032, Section 5.1.2
+            //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
+            //comment:eddsa_signature is the signature of the raw message, only set if status is STATUS_SUCCEEDED. Ed25519 signatures are 64 bytes long, sig = R_bytes || s_bytes. R_bytes is the canonical 32-byte encoding of v, according to RFC 8032, Section 5.1.2
             bytes eddsa_signature = 2;
         }
     }
@@ -272,10 +306,18 @@ message EVMMessage {
         TYPE_PERSONAL_SIGN = 1;
         TYPE_SIGN_TYPED_DATA = 2;
     }
+    //symbol_value:"137"
+    //comment:chain_id is the chain id of the network.  
     uint64 chain_id = 1;
-    // from is the address of the sender. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the address of the sender. It has to be in this vault.
     string from = 2;
+    //required:true
+    //symbol_value:"0
+    //comment:type is the type of the message.  
     Type type = 3;
+    //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
+    //comment:content is the content of the message.    
     bytes content = 4;
 }
 
@@ -285,14 +327,28 @@ message AptosMessage {
         TYPE_DEFAULT = 1;
     }
     message Message {
+        //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+        //comment:address is the address of the sender. It has to be in this vault.
         google.protobuf.StringValue address = 1;
+        //symbol_value:"application"
+        //comment:application is the application of the message.    
         google.protobuf.StringValue application = 2;
-        google.protobuf.Int64Value chain_id = 3;
+        //symbol_value:"137"
+        //comment:chain_id is the chain id of the network.  
+        google.protobuf.Int64Value chain_id = 3;    
+        //symbol_value:"message"
+        //comment:message is the message of the message.
         string message = 4;
+        //symbol_value:"1"
+        //comment:nonce is the nonce of the message.
         string nonce = 5;
     }
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+    //required:true
+    //symbol_value:"0
+    //comment:type is the type of the message.
     Type type = 2;
     Message content = 3;
 }
@@ -302,9 +358,15 @@ message SolanaMessage {
         TYPE_UNSPECIFIED = 0;
         TYPE_DEFAULT = 1;
     }
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+    //required:true
+    //symbol_value:"0
+    //comment:type is the type of the message.
     Type type = 2;
+    //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
+    //comment:content is the content of the message.
     bytes content = 3;
 }
 
@@ -313,9 +375,15 @@ message SuiMessage {
         TYPE_UNSPECIFIED = 0;
         TYPE_DEFAULT = 1;
     }
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+    //required:true
+    //symbol_value:"0
+    //comment:type is the type of the message.  
     Type type = 2;
+    //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
+    //comment:content is the content of the message.
     bytes content = 3;
 }
 
@@ -324,20 +392,26 @@ message TonMessage {
         TYPE_UNSPECIFIED = 0;
         TYPE_DEFAULT = 1;
     }
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+     //required:true
+    //symbol_value:"0
+    //comment:type is the type of the message.
     Type type = 2;
+    //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
+    //comment:content is the content of the message.
     bytes content = 3;
 }
 
 message RawMessage {
-    // from is the wallet address of the key pair that we uses to sign the message. The wallet has to be in this vault.
-    // We will use the key's algorithm to sign the message.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the wallet address of the key pair that we uses to sign the message. The wallet has to be in this vault.We will use the key's algorithm to sign the message.
     string from = 1;
-    // content is the raw message content in bytes.
+    //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
+    //comment:content is the raw message content in bytes.
     bytes content = 2;
-    // ecdsa_hash_function is the hash function to use for signing the message. Required if the key is ECDSA.
-    // This field will be ignored if the key is not ECDSA.
+    //ecdsa_hash_function is the hash function to use for signing the message. Required if the key is ECDSA.This field will be ignored if the key is not ECDSA.
     ECDSAHashFunction ecdsa_hash_function = 3;
 }
 
@@ -349,262 +423,372 @@ enum ECDSAHashFunction {
 
 // EVMGas is the gas fee settings for an EVM transaction.
 message EVMGas {
-    // max_fee is the maximum fee that the user is willing to pay, denominated in wei.
+    //symbol_value:"0.1"
+    //comment:max_fee is the maximum fee that the user is willing to pay, denominated in wei.
     google.protobuf.StringValue max_fee = 1;
-    // max_priority_fee is the maximum priority fee that the user is willing to pay for EIP-1559 transactions, denominated in wei.
-    // leave this field empty if you do not want to use EIP-1559.
+    //symbol_value:"1500000000"
+    //comment:max_priority_fee is the maximum priority fee that the user is willing to pay for EIP-1559 transactions, denominated in wei.leave this field empty if you do not want to use EIP-1559.
     google.protobuf.StringValue max_priority_fee = 2;
-    // gas_limit is the maximum amount of gas that the tx is allowed to consume.
+    //symbol_value:"30000000000"
+    //comment:gas_limit is the maximum amount of gas that the tx is allowed to consume.
     google.protobuf.StringValue gas_limit = 3;
 }
 
 message EVMSendNative {
-    // chain_id is the chain id of the network.
+    //symbol_value:137
+    //comment:chain_id is the chain id of the network.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 3;
-    // value is the amount of the native token to send, denominated in wei.
+    //symbol_value:"1000000000000000"
+    //comment:value is the amount of the native token to send, denominated in wei.
     string value = 4;
-    // when chain_id is a custom chain, this field is required.
+    //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 5;
-    // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
-    // when chain_id is a custom chain, this field is required.
+    //symbol_value:1
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 6;
 }
 
 message EVMSendERC20 {
-    // chain_id is the chain id of the network.
+    //symbol_value:137
+    //comment:chain_id is the chain id of the network.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 3;
-    // token_contract_address is the address of the ERC20 token contract.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:token_contract_address is the address of the ERC20 token contract.
     string token_contract_address = 4;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
-    // We will use the contract's decimals to convert the amount.
+    //symbol_value:"1000000000000000"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals],We will use the contract's decimals to convert the amount.
     string amount = 5;
-    // when chain_id is a custom chain, this field is required.
+    //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
-    // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
-    // when chain_id is a custom chain, this field is required.
+    //symbol_value:1
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 7;
 }
 
 message EVMSendCustom {
-    // chain_id is the chain id of the network.
+    //symbol_value:"1"
+    //comment:chain_id is the chain id of the network.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 3;
-    // value is the amount of the native token to send, denominated in wei.
+    //symbol_value:"1000000000000000"
+    //comment:value is the amount of the native token to send, denominated in wei.
     string value = 4;
+    //symbol_value:"AQAAAAAAAAAAAAAAAAAAAAAA$999999999999AAAAACAAQABA1kYs4/+LFCaNxckNNsERMcgSwr19dR72mxW6j8qJpGv87LKehWtuOxHGbCNbhMcl4yGWqGCnDXiSuHbqRK1X00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQICAAEMAgAAKCGAQAAAAAAAA=="
+    //comment:input is the input data of the transaction.
     bytes input = 5;
-    // when chain_id is a custom chain, this field is required.
+    //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
-    // nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.
-    // when chain_id is a custom chain, this field is required.
+    //symbol_value:1
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 7;
 }
 
 message BTCSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // amount is the amount of the native token to send, denominated in satoshi.
+    //symbol_value:"1000000000000000"
+    //comment:amount is the amount of the native token to send, denominated in satoshi.
     string amount = 3;
-    // network_fee is the network fee that the user is willing to pay, denominated in sat/b.
+    //symbol_value:1
+    //comment:network_fee is the network fee that the user is willing to pay, denominated in sat/b.
     uint64 network_fee = 4;
 }
 
 message TronSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88b098defB751B7401B5f6d8976A"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // value is the amount of the native token to send, denominated in sun.
+    //symbol_value:"1000000000000000"
+    //comment:value is the amount of the native token to send, denominated in sun.
     string value = 3;
 }
 
 message TronSendTRC10 {
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88b098defB751B7401B5f6d8976A"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // asset_name identifies the token to be sent.
+    //symbol_value:"ETH"
+    //comment:asset_name identifies the token to be sent.
     string asset_name = 3;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //symbol_value:"0.001"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
 }
 
 message TronSendTRC20 {
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // contract_address is the address of the token.
+    //symbol_value:"asset_name identifies the token to be sent."
+    //comment:contract_address is the address of the token.
     string contract_address = 3;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //symbol_value:"0.001"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
-    // (optional) fee_limit is the maximum fee that the user is willing to pay, denominated in sun.
+    //symbol_value:"0.001"
+    //comment:fee_limit is the maximum fee that the user is willing to pay, denominated in sun.
     google.protobuf.StringValue fee_limit = 5;
 }
 
 message AptosGas {
-    // (optional) max_gas_amount is the maximum gas units that the transaction can use
-    // https://aptos.dev/concepts/gas-txn-fee/#unit-of-gas
+    //symbol_value:0.98
+    //comment:max_gas_amount is the maximum gas units that the transaction can use https://aptos.dev/concepts/gas-txn-fee/#unit-of-gas
     google.protobuf.StringValue max_gas_amount = 1;
-    // (optional) gas_unit_price is the price that the user is willing to pay, denominated in octa.
+    //symbol_value:1.02
+    //comment:gas_unit_price is the price that the user is willing to pay, denominated in octa.
     google.protobuf.StringValue gas_unit_price = 2;
 }
 
 message AptosSendNative {
-    // please use 1 for mainnet. MPCVault does not support Aptos testnet at the moment.
+    //symbol_value:1
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 3;
-    // value is the amount of the native token to send, denominated in octa.
+    //symbol_value:"0.001"
+    //comment:value is the amount of the native token to send, denominated in octa.
     string value = 4;
-    // (optional) specify the gas fee for the transaction.
+    //specify the gas fee for the transaction.
     AptosGas gas_fee = 5;
 }
 
 message AptosSendCoin {
-    // please use 1 for mainnet. MPCVault does not support Aptos testnet at the moment.
+    //symbol_value:"1"
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 3;
-    // coin_tag identifies the coin to be sent.
+    //symbol_value:"tx_hash:0a1b2c3d...789e, output_index:0"
+    //comment:coin_tag identifies the coin to be sent.
     string coin_tag = 4;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //symbol_value:"0.001"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 5;
-    // (optional) specify the gas fee for the transaction.
+    //specify the gas fee for the transaction.
     AptosGas gas_fee = 6;
 }
 
 message AptosSendCustom {
-    // please use 1 for mainnet. MPCVault does not support Aptos testnet at the moment.
+    //symbol_value:"1"
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // payload can be JSON or the bcs-serialized bytes of the transaction.
+    //symbol_value:"{\"messages\": [{\"address\": \"UQBAjpKk4t1NL9HZZuMbhgaK9yUJzNMRa6Fr-AKG1tEKDgGK\", \"amount\": \"5000\", \"payload\": \"te6cckEBAQEAUwAAog+KfqUSXwBBdB1L+hCoAHZ/QNNYgmBOc062gEjrqpJ4HqNepc+KfFy1o9e/UZxpADiCWN/wfwjWoZ6Gh9G03ZZZ9CehXVEBqUrN6JM50dvXAOFtNv8=\"}], \"valid_until\": 1751843227000, \"from\": \"0:x84145734E376D401A44A3EC7522072EC0BCFA696DE6E35EFE62B605F0573B073\", \"network\": \"-239\"}"
+    //comment:payload can be JSON or the bcs-serialized bytes of the transaction.
     bytes payload = 3;
-    // (optional) specify the gas fee for the transaction.
+    //specify the gas fee for the transaction.
     AptosGas gas_fee = 4;
 }
 
 message SuiGas {
-    // (optional) budget is the maximum fee that the user is willing to pay, denominated in mist.
+    //symbol_value:"0.001"
+    //comment: budget is the maximum fee that the user is willing to pay, denominated in mist.
     google.protobuf.StringValue budget = 1;
-    // (optional) price is the price that the user is willing to pay, denominated in mist.
+    //symbol_value:"1.032"
+    //comment:price is the price that the user is willing to pay, denominated in mist.
     google.protobuf.StringValue price = 2;
 }
 
 message SuiSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // value is the amount of the native token to send, denominated in mist.
+    //symbol_value:"0.00"
+    //comment:value is the amount of the native token to send, denominated in mist.
     string value = 3;
-    // (optional) specify the gas fee for the transaction.
+    //specify the gas fee for the transaction.
     SuiGas gas_fee = 4;
 }
 
 message SuiSendCoin {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // coin_tag identifies the coin to be sent.
+    //required:true
+    //symbol_value:"tx_hash:0a1b2c3d...789e, output_index:0"
+    //comment:coin_tag identifies the coin to be sent.
     string coin_tag = 3;
-    // amount is the amount of coins to send. You should use whole integer representation. [amount * 10^decimals]
+    //required:true
+    //symbol_value:"0.001"
+    //comment:amount is the amount of coins to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
-    // (optional) specify the gas fee for the transaction.
+    //specify the gas fee for the transaction.
     SuiGas gas_fee = 5;
 }
 
 message SuiSendCustom {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true 
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // payload can be JSON or the bcs-serialized bytes of the transaction.
+    //required:true
+    //symbol_value:"{\"messages\": [{\"address\": \"UQBAjpKk4t1NL9HZZuMbhgaK9yUJzNMRa6Fr-AKG1tEKDgGK\", \"amount\": \"5000\", \"payload\": \"te6cckEBAQEAUwAAog+KfqUSXwBBdB1L+hCoAHZ/QNNYgmBOc062gEjrqpJ4HqNepc+KfFy1o9e/UZxpADiCWN/wfwjWoZ6Gh9G03ZZZ9CehXVEBqUrN6JM50dvXAOFtNv8=\"}], \"valid_until\": 1751843227000, \"from\": \"0:x84145734E376D401A44A3EC7522072EC0BCFA696DE6E35EFE62B605F0573B073\", \"network\": \"-239\"}"
+    //comment:payload can be JSON or the bcs-serialized bytes of the transaction.
     bytes payload = 2;
 }
 
 message SolanaSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the account address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the account address of the recipient.
     string to = 2;
-    // value is the amount of the native token to send, denominated in lamports.
+    //required:true
+    //symbol_value:"1000000000000000"
+    //comment:value is the amount of the native token to send, denominated in lamports.
     string value = 3;
-    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    //symbol_value:"101"
+    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
     uint64 chain_id = 4;
 }
 
 message SolanaSendSPLToken {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the account address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the account address of the recipient.
     string to = 2;
-    // mint_address is the address of the token.
+    //required:true
+    //symbol_value:"8y5pTbJpGrUZGFN4M6ACvMbfnhXRrohRnrwannj3Noj"
+    //comment:mint_address is the address of the token.
     string mint_address = 3;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //required:true
+    //symbol_value:"1000000000000000"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
-    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    //symbol_value:101
+    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
     uint64 chain_id = 5;
+    //symbol_value:6
+    //comment:decimals is the decimals of the token.
+    google.protobuf.Int64Value decimals = 6;
 }
 
 message TonSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // value is the amount of the native token to send, denominated in nanos.
+    //required:true
+    //symbol_value:"0.001"
+    //comment:value is the amount of the native token to send, denominated in nanos.
     string value = 3;
-    // (optional) max len is 50.
+    //symbol_value:"ton send native"comment
+    //comment:max len is 50.
     string comment = 4;
 }
 
 message TonSendToken {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // to is the address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the address of the recipient.
     string to = 2;
-    // mint_address is the address of the token.
+    //required:true
+    //symbol_value:"mrujEYaN1oyQXDHeYNxBYpxWKVkQ2XsGxfznpifu4aL"
+    //comment:mint_address is the address of the token.
     string mint_address = 3;
-    // amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //required:true 
+    //symbol_value:"0.001"
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
-    // (optional) max len is 50.
+    //required:true
+    //symbol_value:"ton send token comment"
+    //comment:max len is 50.
     string comment = 5;
+    //symbol_value:6
+    //comment:decimals is the decimals of the token.
+    google.protobuf.Int64Value decimals = 6;
 }
 
 message TonSendCustom {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // payload can be JSON of the transaction. Same as ton-connect.
+    //required:true
+    //symbol_value:"{\"messages\": [{\"address\": \"UQBAjpKk4t1NL9HZZuMbhgaK9yUJzNMRa6Fr-AKG1tEKDgGK\", \"amount\": \"5000\", \"payload\": \"te6cckEBAQEAUwAAog+KfqUSXwBBdB1L+hCoAHZ/QNNYgmBOc062gEjrqpJ4HqNepc+KfFy1o9e/UZxpADiCWN/wfwjWoZ6Gh9G03ZZZ9CehXVEBqUrN6JM50dvXAOFtNv8=\"}], \"valid_until\": 1751843227000, \"from\": \"0:x84145734E376D401A44A3EC7522072EC0BCFA696DE6E35EFE62B605F0573B073\", \"network\": \"-239\"}"
+    //comment:payload can be JSON of the transaction. Same as ton-connect.
     bytes payload = 2;
 }
 
 message SolanaSendCustom {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // max length is 5.
+    //required:true
+    //symbol_value:"AQAAAAAAAAAAAAAAAAAAAAAA$999999999999AAAAACAAQABA1kYs4/+LFCaNxckNNsERMcgSwr19dR72mxW6j8qJpGv87LKehWtuOxHGbCNbhMcl4yGWqGCnDXiSuHbqRK1X00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQICAAEMAgAAKCGAQAAAAAAAA=="
+    //comment:tx_base64 is the base64 encoded transaction.
     repeated string tx_base64 = 2;
-    // please use 101 for mainnet. MPCVault does not support Solana testnet at the moment.
+    //symbol_value:101
+    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
     uint64 chain_id = 3;
 }
 
 message CreateSigningRequestRequest {
-    // type is the type of the signing request. It is a oneof field.
+    //type is the type of the signing request. It is a oneof field.
     oneof type {
         EVMSendNative evm_send_native = 1;
         EVMSendERC20 evm_send_erc20 = 2;
@@ -635,23 +819,28 @@ message CreateSigningRequestRequest {
         SolanaSendSPLToken sonic_svm_send_spl_token = 27;
         SolanaSendCustom sonic_svm_send_custom = 28;
     }
-    // notes is the transaction notes for the signing request.
+    //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 1000;
-    // vault_uuid is the UUID of the vault that the signing request will be created in.
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:vault_uuid is the UUID of the vault that the signing request will be created in.
     google.protobuf.StringValue vault_uuid = 1001;
-    // callback_client_signer_public_key is the public key of the api client signer for callback
-    // It is used to identify the where we should send the callback to. If empty, we will show the signing request in the MPCVault mobile app for manual signing.
-    // Note that if the signing request is created by an api wallet, this field must be set as api wallets can only be signed by the api client signer at the moment.
+    //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRsdeghjcmkidagdk test"
+    //comment:It is used to identify the where we should send the callback to. If empty, we will show the signing request in the MPCVault mobile app for manual signing.Note that if the signing request is created by an api wallet, this field must be set as api wallets can only be signed by the api client signer at the moment.
     google.protobuf.StringValue callback_client_signer_public_key = 1002;
 }
 
 message CreateSigningRequestResponse {
-    // signing_request is the signing request that was created.
+    //signing_request is the signing request that was created.
     SigningRequest signing_request = 1;
     Error error = 2;
 }
 
 message RejectSigningRequestRequest {
+    //required:true
+    //symbol_value:"bb6f129f-bbe3-4d95-9f33-c32812e3e1c4"
+    //comment:uuid is the unique identifier of the signing request.
     string uuid = 1;
 }
 
@@ -660,6 +849,9 @@ message RejectSigningRequestResponse {
 }
 
 message GetSigningRequestDetailsRequest {
+    //required:true
+    //symbol_value:"bb6f129f-bbe3-4d95-9f33-c32812e3e1c4"
+    //comment:uuid is the unique identifier of the signing request.
     string uuid = 1;
 }
 
@@ -675,18 +867,25 @@ message SigningRequest {
         STATUS_SUCCEEDED = 2;
         STATUS_FAILED = 3;
     }
-    // uuid is the unique identifier of the signing request.
+    //required:true
+    //symbol_value:"bb6f129f-bbe3-4d95-9f33-c32812e3e1c4"
+    //comment:uuid is the unique identifier of the signing request.
     string uuid = 1;
-    // status is the status of the signing request. STATUS_SUCCEEDED only means that the signing request has been signed.
-    // it does not mean that the transaction itself is successful.
+    //required:true 
+    //symbol_value:"0
+    //comment:status is the status of the signing request. STATUS_SUCCEEDED only means that the signing request has been signed.it does not mean that the transaction itself is successful.
     Status status = 2;
-    // failed_reason is the reason why the signing request failed, only set if status is STATUS_FAILED.
+    //symbol_value:"failed reason"
+    //comment:failed_reason is the reason why the signing request failed, only set if status is STATUS_FAILED.
     string failed_reason = 3;
-    // tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.
-    // This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
+    //required:true 
+    //symbol_value:"3Eq21vXNB5s86c62bVuUfTerseghjkuUqRPBmGRJhyTA"
+    //comment:tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
     string tx_hash = 4;
-    // creation_timestamp is the timestamp when the signing request was created.
+    //symbol_value:1744274467154
+    //comment:creation_timestamp is the timestamp when the signing request was created.
     uint64 creation_timestamp = 5;
+    //type is the type of the signing request. It is a oneof field.
     oneof type {
         EVMSendNative evm_send_native = 6;
         EVMSendERC20 evm_send_erc20 = 7;
@@ -718,15 +917,20 @@ message SigningRequest {
         SolanaSendSPLToken sonic_svm_send_spl_token = 33;
         SolanaSendCustom sonic_svm_send_custom = 34;
     }
-    // notes is the transaction notes for the signing request.
+    //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F    "
+    //comment:notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 999;
-    // vault_uuid is the UUID of the vault that the signing request was created in.
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:vault_uuid is the UUID of the vault that the signing request was created in.
     google.protobuf.StringValue vault_uuid = 1000;
-    // callback_client_signer_public_key is the public key of the api client signer for callback. This field can be empty.
+    //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRs de g h j c m k i da g d k test"
+    //comment:callback_client_signer_public_key is the public key of the api client signer for callback. This field can be empty.
     google.protobuf.StringValue callback_client_signer_public_key = 1001;
-    // simulation is the transaction simulation for the signing request.
+    //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
+    //comment:simulation is the transaction simulation for the signing request.
     bytes simulation = 1002;
-    // evm_input_data_decode is the evm transaction input data decode for the signing request.
+    //evm_input_data_decode is the evm transaction input data decode for the signing request.
     EVMInputDataDecode evm_input_data_decode = 1003;
 }
 
@@ -736,63 +940,100 @@ message EVMInputDataDecode {
         string type = 2;
         string data = 3;
     }
+    //required:true
+    //symbol_value:"function_name(arg1_type arg1_value, arg2_type arg2_value, ...)"
+    //comment:function is the name of the function to be called.
     string function = 1;
+    //required:true
+    //symbol_value:"[{name: arg1_name, type: arg1_type, data: arg1_value}, {name: arg2_name, type: arg2_type, data: arg2_value}]"
+    //comment:args is the list of arguments to be passed to the function.
     repeated Argument args = 2;
 }
 
 message BatchPaymentRecipient {
-    // address is the address of the recipient.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:address is the address of the recipient.
     string address = 1;
-    // amount is the amount of the tokens to send.
-    // For native tokens such as ether/btc, the amount is denominated in wei/satoshi.
-    // For ERC20 tokens you should use whole integer representation. [amount * 10^decimals]
-    // For bitcoin, the amount is denominated in satoshi.
+    //required:true
+    //symbol_value:"0.001"
+    //comment:amount is the amount of the tokens to send.For native tokens such as ether/btc, the amount is denominated in wei/satoshi.For ERC20 tokens you should use whole integer representation. [amount * 10^decimals],For bitcoin, the amount is denominated in satoshi.
     string amount = 2;
-    // notes is a note for this entry in the batch payment.
+    //symbol_value:"Monthly payroll"
+    //comment:notes is a note for this entry in the batch payment.
     google.protobuf.StringValue notes = 3;
 }
 
 message EVMBatchSendNative {
+    //required:true
+    //symbol_value:137
+    //comment:chain_id is the chain id of the transaction.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
+    //required:true
+    //symbol_value:"[{address: 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F, amount: 0.001, notes: Monthly payroll}]"
+    //comment:recipients is the list of recipients. 
     repeated BatchPaymentRecipient recipients = 3;
 }
 
 message EVMBatchSendERC20 {
+    //required:true
+    //symbol_value:137
+    //comment:chain_id is the chain id of the transaction.
     uint64 chain_id = 1;
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 2;
-    // token_contract_address is the address of the ERC20 token contract.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:token_contract_address is the address of the ERC20 token contract.
     string token_contract_address = 3;
+    //recipients is the list of recipients. 
     repeated BatchPaymentRecipient recipients = 4;
 }
 
 message BTCBatchSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+    //recipients is the list of recipients. 
     repeated BatchPaymentRecipient recipients = 2;
 }
 
 message SUIBatchSendNative {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
+    //recipients is the list of recipients. 
     repeated BatchPaymentRecipient recipients = 2;
 }
 
 message SUIBatchSendCoin {
-    // from is the sender wallet address. It has to be in this vault.
+    //required:true
+    //symbol_value:"0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    // coin_tag identifies the coin to be sent.
+    //required:true
+    //symbol_value:"tx_hash:0a1b2c3d...789e, output_index:0"
+    //comment:coin_tag identifies the coin to be sent.
     string coin_tag = 2;
     repeated BatchPaymentRecipient recipients = 3;
 }
 
 message CreateBatchPaymentRequest {
-    // name is the name of the batch payment.
+    //symbol_value:"Monthly payroll"
+    //comment:name is the name of the batch payment.
     string name = 1;
-    // notes is the transaction notes for the batch payment.
+    //symbol_value:"Monthly payroll"
+    //comment:notes is the transaction notes for the batch payment.
     google.protobuf.StringValue notes = 2;
+    //type is the type of the batch payment. It is a oneof field.
     oneof type {
         EVMBatchSendNative evm_batch_send_native = 3;
         EVMBatchSendERC20 evm_batch_send_erc20 = 4;
@@ -808,6 +1049,9 @@ message CreateBatchPaymentResponse {
 }
 
 message GetBatchPaymentDetailsRequest {
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:uuid is the unique identifier of the batch payment.
     string uuid = 1;
 }
 
@@ -823,22 +1067,32 @@ message BatchPayment {
         STATUS_SUCCEEDED = 2;
         STATUS_FAILED = 3;
     }
-    // uuid is the unique identifier of the batch payment.
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:uuid is the unique identifier of the batch payment.
     string uuid = 1;
-    // name is the name of the batch payment.
+    //symbol_value:"name1"
+    //comment:name is the name of the batch payment.
     string name = 2;
-    // notes is the transaction notes for the batch payment.
+    //symbol_value:"notes test"
+    //comment:notes is the transaction notes for the batch payment.
     string notes = 3;
-    // status is the status of the batch payment.
+    //required:true
+    //symbol_value:"0
+    //comment:status is the status of the batch payment.
     Status status = 4;
-    // failed_reason is the reason why the batch payment failed, only set if status is STATUS_FAILED.
+    //symbol_value:"failed reason"
+    //comment:failed_reason is the reason why the batch payment failed, only set if status is STATUS_FAILED.
     string failed_reason = 5;
-    // creation_timestamp is the timestamp when the batch payment was created.
+    //required:true
+    //symbol_value:1744274467154
+    //comment:creation_timestamp is the timestamp when the batch payment was created.
     uint64 creation_timestamp = 6;
-    // approval_signing_request is the signing request that approves the tokens to be sent if needed.
+    //approval_signing_request is the signing request that approves the tokens to be sent if needed.
     SigningRequest approval_signing_request = 7;
-    // send_signing_request is the signing request that sends the batch payment.
+    //send_signing_request is the signing request that sends the batch payment.
     SigningRequest send_signing_request = 8;
+    //type is the type of the batch payment. It is a oneof field.
     oneof type {
         EVMBatchSendNative evm_batch_send_native = 9;
         EVMBatchSendERC20 evm_batch_send_erc20 = 10;
@@ -853,14 +1107,22 @@ message GetSigningRequestListRequest {
         SORT_ORDER_DESC = 0;
         SORT_ORDER_ASC = 1;
     }
-    // vault_uuid is the UUID of the vault that the signingRequest was created in.
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:vault_uuid is the UUID of the vault that the signingRequest was created in.
     string vault_uuid = 1;
-    // (optional) page is the page number.
-    // default: 1
+    //symbol_value:1
+    //comment: page is the page number.
+    //default: 1
     google.protobuf.Int64Value page = 2;
-    // (optional) limit is the number of signingRequests to return.
-    // default: 10, max: 100
+    //symbol_value:10
+    //comment:limit is the number of signingRequests to return.
+    //default: 10
+    //max: 100
     google.protobuf.Int64Value limit = 3;
+     //required:true
+    //symbol_value:"0
+    //comment:sort_order is the order of the signing requests ,o to desc,1 to asc.
     SortOrder sort_order = 4;
 }
 
@@ -870,10 +1132,16 @@ message GetSigningRequestListResponse {
 }
 
 message ResimulationRequest {
+    //required:true
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:signing_request_uuid is the UUID of the signing request to be simulated.  
     string signing_request_uuid = 1;
 }
 
 message ResimulationResponse {
+    //required:true
+    //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
+    //comment:simulation is the simulation of the signing request.  
     bytes simulation = 1;
     Error error = 2;
 }
