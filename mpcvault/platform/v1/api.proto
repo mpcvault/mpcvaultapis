@@ -159,7 +159,7 @@ message GetWalletListRequest {
 }
 
 message GetWalletListResponse {
-    //symbol_value:"[{address: 0x71C7656EC7ab88b098defB752345回到家旧旧d s f r, name: test wallet, status: STATUS_ACTIVE}]"
+    //symbol_value:"[{address: 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F, name: test wallet, status: STATUS_ACTIVE}]"
     //comment:details_list is the list of wallets.
     repeated Wallet details_list = 1;
     Error error = 2;
