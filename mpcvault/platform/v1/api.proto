@@ -281,6 +281,8 @@ message ExecuteSigningRequestsResponse {
     string tx_hash = 2;
     //signatures is the signatures of the raw message, only set if status is STATUS_SUCCEEDED.
     SignatureContainer signatures = 3;
+    //signed_transaction is the signed transaction for broadcast, only set if status is STATUS_SUCCEEDED.
+    string signed_transaction = 4;
 }
 
 message SignatureContainer {
