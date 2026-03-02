@@ -831,6 +831,8 @@ message CreateSigningRequestRequest {
     //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRsdeghjcmkidagdk test"
     //comment:It is used to identify the where we should send the callback to. If empty, we will show the signing request in the MPCVault mobile app for manual signing.Note that if the signing request is created by an api wallet, this field must be set as api wallets can only be signed by the api client signer at the moment.
     google.protobuf.StringValue callback_client_signer_public_key = 1002;
+    //comment:If true, the tx will be automatically broadcasted after signing. Not supported for Message types, RawMessage, or txs on non-system (custom EVM) chains. All other standard txs on system chains are supported.
+    google.protobuf.BoolValue broadcast_tx = 1003;
 }
 
 message CreateSigningRequestResponse {
