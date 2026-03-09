@@ -17,7 +17,28 @@ As an example, if you aim to compile GoLang bindings, you should first install G
 Afterwards, you can compile the GoLang bindings using the command given below:
 
 ```bash
-protoc -I . --go_out=plugins=grpc:./genproto --go_opt=paths=source_relative \
-    --grpc-gateway_out=./genproto --grpc-gateway_opt=paths=source_relative \
-    mpcvault/platform/v1/*.proto
+# protoc -I . --go_out=plugins=grpc:./genproto --go_opt=paths=source_relative \
+#    --grpc-gateway_out=./genproto --grpc-gateway_opt=paths=source_relative \
+#    mpcvault/platform/v1/*.proto
+
+# 1. Clone the forked connect-openapi repository (includes the no-schema-title patch)
+git clone https://github.com/lucastq1019/protoc-gen-connect-openapi.git
+
+# 2. Build and install the plugin binary
+cd protoc-gen-connect-openapi
+go build -o $(go env GOPATH)/bin/protoc-gen-connect-openapi .
+cd ..
+
+# 3. Generate the OpenAPI spec
+protoc -I . \
+  --connect-openapi_out=gen \
+  --connect-openapi_opt=format=json \
+  --connect-openapi_opt=path-prefix= \
+  --connect-openapi_opt=no-schema-title \
+  --connect-openapi_opt=base=base.yaml \
+  mpcvault/platform/v1/api.proto
+
+# 4. Copy the generated output to the Mintlify docs directory
+cp gen/mpcvault/platform/v1/api.openapi.json mintlify-docs/openapi.json
+
 ```
