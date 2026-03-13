@@ -222,6 +222,7 @@ enum NetworkType {
     NETWORK_TYPE_SUI = 5;
     NETWORK_TYPE_SOLANA = 6;
     NETWORK_TYPE_TON = 7;
+    NETWORK_TYPE_STELLAR = 8;
 }
 enum KeyType {
     KEY_TYPE_UNSPECIFIED = 0;
@@ -309,17 +310,17 @@ message EVMMessage {
         TYPE_SIGN_TYPED_DATA = 2;
     }
     //symbol_value:"137"
-    //comment:chain_id is the chain id of the network.  
+    //comment:chain_id is the chain id of the network.
     uint64 chain_id = 1;
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the address of the sender. It has to be in this vault.
     string from = 2;
     //required:true
     //symbol_value:"0
-    //comment:type is the type of the message.  
+    //comment:type is the type of the message.
     Type type = 3;
     //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
-    //comment:content is the content of the message.    
+    //comment:content is the content of the message.
     bytes content = 4;
 }
 
@@ -333,11 +334,11 @@ message AptosMessage {
         //comment:address is the address of the sender. It has to be in this vault.
         google.protobuf.StringValue address = 1;
         //symbol_value:"application"
-        //comment:application is the application of the message.    
+        //comment:application is the application of the message.
         google.protobuf.StringValue application = 2;
         //symbol_value:"137"
-        //comment:chain_id is the chain id of the network.  
-        google.protobuf.Int64Value chain_id = 3;    
+        //comment:chain_id is the chain id of the network.
+        google.protobuf.Int64Value chain_id = 3;
         //symbol_value:"message"
         //comment:message is the message of the message.
         string message = 4;
@@ -382,7 +383,7 @@ message SuiMessage {
     string from = 1;
     //required:true
     //symbol_value:"0
-    //comment:type is the type of the message.  
+    //comment:type is the type of the message.
     Type type = 2;
     //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
     //comment:content is the content of the message.
@@ -667,7 +668,7 @@ message SuiSendCoin {
 }
 
 message SuiSendCustom {
-    //required:true 
+    //required:true
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
@@ -751,7 +752,7 @@ message TonSendToken {
     //symbol_value:"mrujEYaN1oyQXDHeYNxBYpxWKVkQ2XsGxfznpifu4aL"
     //comment:mint_address is the address of the token.
     string mint_address = 3;
-    //required:true 
+    //required:true
     //symbol_value:"0.001"
     //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
     string amount = 4;
@@ -789,6 +790,79 @@ message SolanaSendCustom {
     uint64 chain_id = 3;
 }
 
+message StellarSendNative {
+    //required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    //required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:to is the account address of the recipient.
+    string to = 2;
+    //required:true
+    //symbol_value:"10.1"
+    //comment:value is the amount of the native asset to send.
+    string value = 3;
+    //symbol_value:"stellar send native"
+    //comment:max len is 35.
+    string memo = 4;
+}
+
+message StellarChangeTrust {
+	//required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+	//required:true
+    //symbol_value:"USDC"
+    //comment:asset_code is the code of the asset.
+    string asset_code = 2;
+    //required:true
+    //symbol_value:"GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    //comment:asset_issuer is the issuer of the asset.
+    string asset_issuer = 3;
+    //symbol_value:"stellar change trust"
+    //comment:max len is 35.
+    string memo = 4;
+}
+
+message StellarSendAsset {
+    //required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    //required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:to is the account address of the recipient.
+    string to = 2;
+    //required:true
+    //symbol_value:"USDC"
+    //comment:asset_code is the code of the asset.
+    string asset_code = 3;
+    //required:true
+    //symbol_value:"GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    //comment:asset_issuer is the issuer of the asset.
+    string asset_issuer = 4;
+    //required:true
+    //symbol_value:"10.1"
+    //comment:amount is the amount of assets to send. You should use whole integer representation.
+    string amount = 5;
+    //symbol_value:"stellar send asset"
+    //comment:max len is 35.
+    string memo = 6;
+}
+
+message StellarSendCustom {
+    //required:true
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the sender wallet address. It has to be in this vault.
+    string from = 1;
+    //required:true
+    //symbol_value:"AQAAAAAAAAAAAAAAAAAAAAAA$999999999999AAAAACAAQABA1kYs4/+LFCaNxckNNsERMcgSwr19dR72mxW6j8qJpGv87LKehWtuOxHGbCNbhMcl4yGWqGCnDXiSuHbqRK1X00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQICAAEMAgAAKCGAQAAAAAAAA=="
+    //comment:tx_base64 is the base64 encoded transaction.
+    string tx_base64 = 2;
+}
+
 message CreateSigningRequestRequest {
     //type is the type of the signing request. It is a oneof field.
     oneof type {
@@ -820,6 +894,10 @@ message CreateSigningRequestRequest {
         SolanaSendNative sonic_svm_send_native = 26;
         SolanaSendSPLToken sonic_svm_send_spl_token = 27;
         SolanaSendCustom sonic_svm_send_custom = 28;
+        StellarSendNative stellar_send_native = 29;
+        StellarSendAsset stellar_send_asset = 30;
+        StellarSendCustom stellar_send_custom = 31;
+        StellarChangeTrust stellar_change_trust = 32;
     }
     //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:notes is the transaction notes for the signing request.
@@ -875,14 +953,14 @@ message SigningRequest {
     //symbol_value:"bb6f129f-bbe3-4d95-9f33-c32812e3e1c4"
     //comment:uuid is the unique identifier of the signing request.
     string uuid = 1;
-    //required:true 
+    //required:true
     //symbol_value:"0
     //comment:status is the status of the signing request. STATUS_SUCCEEDED only means that the signing request has been signed.it does not mean that the transaction itself is successful.
     Status status = 2;
     //symbol_value:"failed reason"
     //comment:failed_reason is the reason why the signing request failed, only set if status is STATUS_FAILED.
     string failed_reason = 3;
-    //required:true 
+    //required:true
     //symbol_value:"3Eq21vXNB5s86c62bVuUfTerseghjkuUqRPBmGRJhyTA"
     //comment:tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
     string tx_hash = 4;
@@ -920,6 +998,10 @@ message SigningRequest {
         SolanaSendNative sonic_svm_send_native = 32;
         SolanaSendSPLToken sonic_svm_send_spl_token = 33;
         SolanaSendCustom sonic_svm_send_custom = 34;
+        StellarSendNative stellar_send_native = 35;
+        StellarSendAsset stellar_send_asset = 36;
+        StellarSendCustom stellar_send_custom = 37;
+        StellarChangeTrust stellar_change_trust = 38;
     }
     //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F    "
     //comment:notes is the transaction notes for the signing request.
@@ -979,7 +1061,7 @@ message EVMBatchSendNative {
     string from = 2;
     //required:true
     //symbol_value:"[{address: 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F, amount: 0.001, notes: Monthly payroll}]"
-    //comment:recipients is the list of recipients. 
+    //comment:recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 3;
 }
 
@@ -996,7 +1078,7 @@ message EVMBatchSendERC20 {
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:token_contract_address is the address of the ERC20 token contract.
     string token_contract_address = 3;
-    //recipients is the list of recipients. 
+    //recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 4;
 }
 
@@ -1005,7 +1087,7 @@ message BTCBatchSendNative {
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    //recipients is the list of recipients. 
+    //recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 2;
 }
 
@@ -1014,7 +1096,7 @@ message SUIBatchSendNative {
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
     string from = 1;
-    //recipients is the list of recipients. 
+    //recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 2;
 }
 
@@ -1138,14 +1220,14 @@ message GetSigningRequestListResponse {
 message ResimulationRequest {
     //required:true
     //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
-    //comment:signing_request_uuid is the UUID of the signing request to be simulated.  
+    //comment:signing_request_uuid is the UUID of the signing request to be simulated.
     string signing_request_uuid = 1;
 }
 
 message ResimulationResponse {
     //required:true
     //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
-    //comment:simulation is the simulation of the signing request.  
+    //comment:simulation is the simulation of the signing request.
     bytes simulation = 1;
     Error error = 2;
 }
