@@ -1027,6 +1027,8 @@ message SigningRequest {
     bytes simulation = 1002;
     //evm_input_data_decode is the evm transaction input data decode for the signing request.
     EVMInputDataDecode evm_input_data_decode = 1003;
+    //comment:signatures are the per-share signature results, only set when the request is a transaction/message type and has been signed. Same shape as ExecuteSigningRequestsResponse.signatures.
+    SignatureContainer signatures = 1004;
 }
 
 message EVMInputDataDecode {
