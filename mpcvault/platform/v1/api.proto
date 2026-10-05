@@ -45,6 +45,11 @@ service PlatformAPI {
 
     // GetSigningRequestDetails returns the details of a signing request.
     // It will contain the signing request status and the transaction hash if the signing request was completed.
+    // Requests created in the MPCVault app or by a connected dApp (WalletConnect, plugin or MMI) are returned in the same shape as API-created requests.
+    // The payload member that is set tells what kind of request it is: a dApp transaction is returned as the custom transaction of its network
+    // (evm_send_custom, solana_send_custom, sui_send_custom, aptos_send_custom, ton_send_custom or stellar_send_custom) and a dApp message as the
+    // message of its network (evm_message, solana_message, ...). source is set only for requests that arrived from a dApp.
+    // A dApp request returned without a payload member is not fully supported by this API yet: use the MPCVault app to view its details.
     rpc GetSigningRequestDetails (GetSigningRequestDetailsRequest) returns (GetSigningRequestDetailsResponse){
         option (google.api.http) = {
             post: "/v1/getSigningRequestDetails"
@@ -111,6 +116,7 @@ service PlatformAPI {
 
     // GetSigningRequestList returns the signing requests details.
     // It will contain the signing request status and the transaction hash if the signing request was completed.
+    // Each signing request carries the same payload as GetSigningRequestDetails.
     rpc GetSigningRequestList (GetSigningRequestListRequest) returns (GetSigningRequestListResponse){
         option (google.api.http) = {
             post: "/v1/getSigningRequestList"
@@ -1011,6 +1017,20 @@ message SigningRequest {
         StellarSendAsset stellar_send_asset = 36;
         StellarSendCustom stellar_send_custom = 37;
         StellarChangeTrust stellar_change_trust = 38;
+        // The members below are requests that cannot be created through this API. Their messages have no fields yet:
+        // the member that is set tells what kind of request it is.
+        SwapApproval swap_approval = 39;
+        SwapSend swap_send = 40;
+        BatchPaymentApproval batch_payment_approval = 41;
+        BatchPaymentSend batch_payment_send = 42;
+        FiatPayment fiat_payment = 43;
+        AptosRegisterCoin aptos_register_coin = 44;
+        AptosOpenToken aptos_open_token = 45;
+        VaultCreation vault_creation = 46;
+        VaultSettingUpdate vault_setting_update = 47;
+        RootKeyGeneration root_key_generation = 48;
+        RootKeyBackup root_key_backup = 49;
+        KeyAccessGrant key_access_grant = 50;
     }
     //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F    "
     //comment:notes is the transaction notes for the signing request.
@@ -1029,6 +1049,60 @@ message SigningRequest {
     EVMInputDataDecode evm_input_data_decode = 1003;
     //comment:signatures are the per-share signature results, only set when the request is a transaction/message type and has been signed. Same shape as ExecuteSigningRequestsResponse.signatures.
     SignatureContainer signatures = 1004;
+    //comment:source is where an inbound dApp request came from. It is set ONLY for requests that arrived from a dApp (WalletConnect, plugin or MMI) and is not set for any other request.
+    RequestSource source = 1005;
+}
+
+// SwapApproval is the token approval that precedes a swap. It has no fields yet.
+message SwapApproval {}
+
+// SwapSend is the swap transaction itself. It has no fields yet.
+message SwapSend {}
+
+// BatchPaymentApproval is the token approval that precedes a batch payment. It has no fields yet.
+message BatchPaymentApproval {}
+
+// BatchPaymentSend is the batch payment transaction. It has no fields yet.
+message BatchPaymentSend {}
+
+// FiatPayment is a token transfer that pays a fiat order. It has no fields yet.
+message FiatPayment {}
+
+// AptosRegisterCoin registers a coin on an Aptos account so that it can receive it. It has no fields yet.
+message AptosRegisterCoin {}
+
+// AptosOpenToken lets an Aptos account receive NFTs sent to it directly. It has no fields yet.
+message AptosOpenToken {}
+
+// VaultCreation is the approval of a new vault. It has no fields yet.
+message VaultCreation {}
+
+// VaultSettingUpdate is the approval of a change to the settings of a vault. It has no fields yet.
+message VaultSettingUpdate {}
+
+// RootKeyGeneration is the generation of an MPC root key (ECDSA or EdDSA). It has no fields yet.
+message RootKeyGeneration {}
+
+// RootKeyBackup is the backup of the root keys of the organization. It has no fields yet.
+message RootKeyBackup {}
+
+// KeyAccessGrant grants a member or an API client signer access to a key. It has no fields yet.
+message KeyAccessGrant {}
+
+// RequestSource describes where an inbound request came from. It is set only for requests that arrived from a dApp.
+// It identifies the intake channel; it does not authenticate the dApp or the person behind the request.
+message RequestSource {
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        TYPE_WALLET_CONNECT = 1;
+        TYPE_PLUGIN = 2;
+        TYPE_MMI = 3;
+    }
+    //comment:type is the intake channel through which MPCVault received the request. MPCVault sets it and the dApp cannot choose it, but it identifies the channel only: it does not prove which dApp, plugin or person is behind the request (a plugin request, for example, can be created by any member of the vault). Do not use it, or website, to approve a request on its own.
+    Type type = 1;
+    //symbol_value:"app.uniswap.org"
+    //comment:website is the website the dApp claimed for itself. It is not verified: treat it as untrusted input.
+    google.protobuf.StringValue website = 2;
 }
 
 message EVMInputDataDecode {
