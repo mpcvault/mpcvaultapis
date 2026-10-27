@@ -805,6 +805,14 @@ message SolanaSendCustom {
     uint64 chain_id = 3;
 }
 
+enum StellarMemoType {
+    STELLAR_MEMO_TYPE_UNSPECIFIED = 0;
+    STELLAR_MEMO_TYPE_TEXT = 1;
+    STELLAR_MEMO_TYPE_ID = 2;
+    STELLAR_MEMO_TYPE_HASH = 3;
+    STELLAR_MEMO_TYPE_RETURN = 4;
+}
+
 message StellarSendNative {
     //required:true
     //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
@@ -819,8 +827,9 @@ message StellarSendNative {
     //comment:value is the amount of the native asset to send.
     string value = 3;
     //symbol_value:"stellar send native"
-    //comment:max len is 28.
+    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
     string memo = 4;
+    StellarMemoType memo_type = 5;
 }
 
 message StellarChangeTrust {
@@ -837,8 +846,9 @@ message StellarChangeTrust {
     //comment:asset_issuer is the issuer of the asset.
     string asset_issuer = 3;
     //symbol_value:"stellar change trust"
-    //comment:max len is 28.
+    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
     string memo = 4;
+    StellarMemoType memo_type = 5;
 }
 
 message StellarSendAsset {
@@ -863,8 +873,9 @@ message StellarSendAsset {
     //comment:amount is the amount of assets to send. You should use whole integer representation.
     string amount = 5;
     //symbol_value:"stellar send asset"
-    //comment:max len is 28.
+    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
     string memo = 6;
+    StellarMemoType memo_type = 7;
 }
 
 message StellarSendCustom {
