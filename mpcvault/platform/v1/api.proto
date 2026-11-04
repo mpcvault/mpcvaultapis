@@ -43,13 +43,23 @@ service PlatformAPI {
         };
     };
 
-    // GetSigningRequestDetails returns the details of a signing request.
-    // It will contain the signing request status and the transaction hash if the signing request was completed.
-    // Requests created in the MPCVault app or by a connected dApp (WalletConnect, plugin or MMI) are returned in the same shape as API-created requests.
-    // The payload member that is set tells what kind of request it is: a dApp transaction is returned as the custom transaction of its network
-    // (evm_send_custom, solana_send_custom, sui_send_custom, aptos_send_custom, ton_send_custom or stellar_send_custom) and a dApp message as the
-    // message of its network (evm_message, solana_message, ...). source is set only for requests that arrived from a dApp.
-    // A dApp request returned without a payload member is not fully supported by this API yet: use the MPCVault app to view its details.
+    //comment:RejectSigningRequests rejects ongoing wallet and vault-management requests in accessible vaults.
+    rpc RejectSigningRequests (RejectSigningRequestsRequest) returns (RejectSigningRequestsResponse){
+        option (google.api.http) = {
+            post: "/v1/rejectSigningRequests"
+            body: "*"
+        };
+    };
+
+    // ApproveSigningRequest records the authenticated API user's approval without signing.
+    rpc ApproveSigningRequest (ApproveSigningRequestRequest) returns (ApproveSigningRequestResponse){
+        option (google.api.http) = {
+            post: "/v1/approveSigningRequest"
+            body: "*"
+        };
+    };
+
+    //comment:GetSigningRequestDetails returns the status, payload and available signing results of a signing request.
     rpc GetSigningRequestDetails (GetSigningRequestDetailsRequest) returns (GetSigningRequestDetailsResponse){
         option (google.api.http) = {
             post: "/v1/getSigningRequestDetails"
@@ -57,7 +67,7 @@ service PlatformAPI {
         };
     };
 
-    // CreateBatchPayment creates a batch payment. You will need to complete the batch payment using the MPCVault web app.
+    // CreateBatchPayment creates a batch payment. Complete its wallet signing requests using the MPCVault web app or ExecuteSigningRequests with a configured API client signer.
     rpc CreateBatchPayment (CreateBatchPaymentRequest) returns (CreateBatchPaymentResponse){
         option (google.api.http) = {
             post: "/v1/createBatchPayment"
@@ -65,7 +75,7 @@ service PlatformAPI {
         };
     };
 
-    // GetBatchPaymentDetails returns the details of a batch payment including the signing requests.
+    // GetBatchPaymentDetails returns a batch payment and its signing requests.
     rpc GetBatchPaymentDetails (GetBatchPaymentDetailsRequest) returns (GetBatchPaymentDetailsResponse){
         option (google.api.http) = {
             post: "/v1/getBatchPaymentDetails"
@@ -82,7 +92,7 @@ service PlatformAPI {
         };
     };
 
-    // ExecuteSigningRequests signs a signing request. The signing request can be created via the API or manually.
+    //comment:ExecuteSigningRequests signs a supported wallet request using the configured API ClientSigner.
     rpc ExecuteSigningRequests (ExecuteSigningRequestsRequest) returns (ExecuteSigningRequestsResponse){
         option (google.api.http) = {
             post: "/v1/executeSigningRequests"
@@ -114,12 +124,19 @@ service PlatformAPI {
         };
     };
 
-    // GetSigningRequestList returns the signing requests details.
-    // It will contain the signing request status and the transaction hash if the signing request was completed.
-    // Each signing request carries the same payload as GetSigningRequestDetails.
+    //comment:GetSigningRequestList returns a page of signing requests in one vault.
     rpc GetSigningRequestList (GetSigningRequestListRequest) returns (GetSigningRequestListResponse){
         option (google.api.http) = {
             post: "/v1/getSigningRequestList"
+            body: "*"
+        };
+    };
+
+    //comment:GetPendingSigningRequests returns all requests awaiting the API user's approval or ready for their bound
+    // ClientSigner.
+    rpc GetPendingSigningRequests (GetPendingSigningRequestsRequest) returns (GetPendingSigningRequestsResponse){
+        option (google.api.http) = {
+            post: "/v1/getPendingSigningRequests"
             body: "*"
         };
     };
@@ -203,7 +220,7 @@ message GetBalanceRequest {
 
 message GetBalanceResponse {
     //symbol_value:0.12128
-    //comment:The balance is in the smallest denomination.
+    //comment:balance is the decimal balance in whole asset units: "1" means 1 ETH, not 1 wei; "10.5" means 10.5 tokens.
     string balance = 1;
     //comment:The error is null when success.
     Error error = 2;
@@ -212,17 +229,20 @@ message GetBalanceResponse {
 message CreateWalletRequest {
     //required:true
     //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
-    //comment:vault_uuid is the UUID of the vault that the wallet will be created in.You can find it in the settings page of your vault on the web.
+    //comment:vault_uuid is the UUID of the vault that the wallet will be created in.You can find it in the settings
+    // page of your vault on the web.
     string vault_uuid = 1;
     //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRsdeghjcmkidagdk test"
-    //comment:callback_client_signer_public_key is the public key of the api client signer. It is used to identify the where we should send the callback to.
+    //comment:callback_client_signer_public_key is the public key of the api client signer. It is used to identify the
+    // where we should send the callback to.
     string callback_client_signer_public_key = 2;
     //required:true
     //symbol_value:"1"
     //comment:network_type is the type of the network.
     NetworkType network_type = 3;
     //symbol_value:"0x4321567890abcdef4321567890abcdef123456"
-    //comment:ref is the customer reference field for the wallet. It has to be unique if not empty.max length is 500 characters.
+    //comment:ref is the customer reference field for the wallet. It has to be unique if not empty.max length is 500
+    // characters.
     string ref = 4;
     //symbol_value:"test wallet"
     //comment:name is the name for the wallet.  max length is 85 characters.
@@ -284,29 +304,39 @@ message CreateWalletResponse {
     Error error = 2;
 }
 
+//comment:ExecuteSigningRequestsRequest requires a full access token with access to the request and a configured, online
+// API ClientSigner. Only supported wallet requests can be executed; queryable management requests cannot.
 message ExecuteSigningRequestsRequest {
     //required:true
     //symbol_value:"12789f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
-    //comment:uuid is the UUID of the signing request. Currently only signing requests of API wallets are supported.
+    //comment:uuid is the UUID of one wallet signing request to execute, whether created through the API, MPCVault app
+    // or a connected dApp.
     string uuid = 1;
 }
 message ExecuteSigningRequestsResponse {
     Error error = 1;
     //symbol_value:"3Eq21vXNB5s86c62bVuUfTerseghjkuUqRPBmGRJhyTA"
-    //comment:tx_hash is the hash of the signed transaction, only set if status is STATUS_SUCCEEDED.This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
+    //comment:tx_hash is the signed transaction hash, when available. It does not confirm successful broadcasting or
+    // on-chain execution. Message requests may have no transaction hash.
     string tx_hash = 2;
-    //signatures is the signatures of the raw message, only set if status is STATUS_SUCCEEDED.
+    //comment:signatures contains complete signature results in signing order, when available. See SignatureContainer;
+    // these are not MPC signature shares.
     SignatureContainer signatures = 3;
-    //signed_transaction is the signed transaction for broadcast, only set if status is STATUS_SUCCEEDED.
+    //comment:signed_transaction is the serialized signed transaction, when available, using the encoding on
+    // SigningRequest.signed_transaction. Absent for messages; co-signed transactions may still need other parties'
+    // signatures.
     string signed_transaction = 4;
 }
 
+//comment:SignatureContainer contains complete signatures of messages or digests in signing order, not MPC shares. A
+// Bitcoin transaction may have one result per input digest.
 message SignatureContainer {
     message SignResponse {
         oneof signature {
             ECDSASignature ecdsa_signature = 1;
             //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
-            //comment:eddsa_signature is the signature of the raw message, only set if status is STATUS_SUCCEEDED. Ed25519 signatures are 64 bytes long, sig = R_bytes || s_bytes. R_bytes is the canonical 32-byte encoding of v, according to RFC 8032, Section 5.1.2
+            //comment:eddsa_signature is the 64-byte Ed25519 signature of the raw message, R_bytes || s_bytes, available
+            // only for STATUS_SUCCEEDED. R_bytes uses the canonical 32-byte encoding in RFC 8032, Section 5.1.2.
             bytes eddsa_signature = 2;
         }
     }
@@ -323,6 +353,9 @@ message EVMMessage {
         TYPE_UNSPECIFIED = 0;
         TYPE_PERSONAL_SIGN = 1;
         TYPE_SIGN_TYPED_DATA = 2;
+        //comment:TYPE_ETH_SIGN identifies eth_sign on existing dApp requests. Output-only; rejected by
+        // CreateSigningRequest.
+        TYPE_ETH_SIGN = 3;
     }
     //symbol_value:"137"
     //comment:chain_id is the chain id of the network.
@@ -335,7 +368,8 @@ message EVMMessage {
     //comment:type is the type of the message.
     Type type = 3;
     //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
-    //comment:content is the content of the message.
+    //comment:content contains hex-decoded message bytes for TYPE_PERSONAL_SIGN and TYPE_ETH_SIGN,
+    // or typed-data text bytes for TYPE_SIGN_TYPED_DATA. TYPE_ETH_SIGN has no personal_sign prefix.
     bytes content = 4;
 }
 
@@ -351,8 +385,9 @@ message AptosMessage {
         //symbol_value:"application"
         //comment:application is the application of the message.
         google.protobuf.StringValue application = 2;
-        //symbol_value:"137"
-        //comment:chain_id is the chain id of the network.
+        //symbol_value:1
+        //comment:chain_id is the optional chain ID in the signed content, separate from AptosMessage.network.
+        // When absent, it is not filled from network.
         google.protobuf.Int64Value chain_id = 3;
         //symbol_value:"message"
         //comment:message is the message of the message.
@@ -369,6 +404,10 @@ message AptosMessage {
     //comment:type is the type of the message.
     Type type = 2;
     Message content = 3;
+    //comment:network is output-only request context using the aptos body, including for Movement.
+    // Omitted when the historical network is uncertain. It neither changes signed content nor provides replay protection.
+    // CreateSigningRequest rejects this field; it cannot select a network.
+    NetworkInfo network = 4;
 }
 
 message SolanaMessage {
@@ -386,6 +425,11 @@ message SolanaMessage {
     //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
     //comment:content is the content of the message.
     bytes content = 3;
+    //comment:network is output-only request context using the solana body; genesis_hash distinguishes Solana and Sonic
+    // SVM.
+    // Omitted when the historical network is uncertain. It neither changes signed content nor provides replay protection.
+    // CreateSigningRequest rejects this field; it cannot select a network.
+    NetworkInfo network = 4;
 }
 
 message SuiMessage {
@@ -424,7 +468,8 @@ message TonMessage {
 
 message RawMessage {
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
-    //comment:from is the wallet address of the key pair that we uses to sign the message. The wallet has to be in this vault.We will use the key's algorithm to sign the message.
+    //comment:from is the wallet address of the key pair that we uses to sign the message. The wallet has to be in this
+    // vault.We will use the key's algorithm to sign the message.
     string from = 1;
     //symbol_value:"eyJub25jIiLCAiZ2FzUHJpY2UiOiAiMHhDIiwgImdhc0xpbWl0IjogIjB4MTg2QTAiLCAidG8iOiAiMHg4ZkVERkQ5QkVkOTAxMEYxMTU3MGFDRjU1M2M4RjgzQ0I5NTQ4MzdjIiwgInZhbsICJkYXR"
     //comment:content is the raw message content in bytes.
@@ -441,14 +486,21 @@ enum ECDSAHashFunction {
 
 // EVMGas is the gas fee settings for an EVM transaction.
 message EVMGas {
-    //symbol_value:"0.1"
-    //comment:max_fee is the maximum fee that the user is willing to pay, denominated in wei.
+    //symbol_value:"30000000000"
+    //comment:max_fee is the price cap in wei per gas, as a non-negative decimal integer string:
+    // gasPrice for legacy transactions or maxFeePerGas for EIP-1559. Required on custom EVM networks;
+    // otherwise omission lets the service select gas prices.
     google.protobuf.StringValue max_fee = 1;
     //symbol_value:"1500000000"
-    //comment:max_priority_fee is the maximum priority fee that the user is willing to pay for EIP-1559 transactions, denominated in wei.leave this field empty if you do not want to use EIP-1559.
+    //comment:max_priority_fee is the EIP-1559 tip cap in wei per gas, as a non-negative decimal integer string.
+    // Applied only with max_fee on networks supporting priority fees; otherwise ignored.
+    // A positive value must be less than max_fee. When omitted with max_fee, defaults to 30000000000 on Polygon
+    // and 0 elsewhere. The network configuration determines the transaction type, even when this is omitted.
     google.protobuf.StringValue max_priority_fee = 2;
-    //symbol_value:"30000000000"
-    //comment:gas_limit is the maximum amount of gas that the tx is allowed to consume.
+    //symbol_value:"21000"
+    //comment:gas_limit is the maximum gas-unit count, as a positive decimal integer string within uint64 range.
+    // Omission with max_fee uses a network- and request-specific default. Supplying only gas_limit leaves gas pricing
+    // to the service.
     google.protobuf.StringValue gas_limit = 3;
 }
 
@@ -468,7 +520,8 @@ message EVMSendNative {
     //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 5;
     //symbol_value:1
-    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the
+    // sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 6;
 }
 
@@ -486,12 +539,14 @@ message EVMSendERC20 {
     //comment:token_contract_address is the address of the ERC20 token contract.
     string token_contract_address = 4;
     //symbol_value:"1000000000000000"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals],We will use the contract's decimals to convert the amount.
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals],We will use the contract's decimals to convert the amount.
     string amount = 5;
     //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
     //symbol_value:1
-    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the
+    // sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 7;
 }
 
@@ -514,7 +569,8 @@ message EVMSendCustom {
     //when chain_id is a custom chain, this field is required.
     EVMGas gas_fee = 6;
     //symbol_value:1
-    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the sender.when chain_id is a custom chain, this field is required.
+    //comment:nonce is the nonce of the transaction. If this field is not set, we will use the next nonce of the
+    // sender.when chain_id is a custom chain, this field is required.
     google.protobuf.Int64Value nonce = 7;
 }
 
@@ -556,7 +612,8 @@ message TronSendTRC10 {
     //comment:asset_name identifies the token to be sent.
     string asset_name = 3;
     //symbol_value:"0.001"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals]
     string amount = 4;
 }
 
@@ -571,7 +628,8 @@ message TronSendTRC20 {
     //comment:contract_address is the address of the token.
     string contract_address = 3;
     //symbol_value:"0.001"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals]
     string amount = 4;
     //symbol_value:"0.001"
     //comment:fee_limit is the maximum fee that the user is willing to pay, denominated in sun.
@@ -580,7 +638,8 @@ message TronSendTRC20 {
 
 message AptosGas {
     //symbol_value:0.98
-    //comment:max_gas_amount is the maximum gas units that the transaction can use https://aptos.dev/concepts/gas-txn-fee/#unit-of-gas
+    //comment:max_gas_amount is the maximum gas units that the transaction can use
+    // https://aptos.dev/concepts/gas-txn-fee/#unit-of-gas
     google.protobuf.StringValue max_gas_amount = 1;
     //symbol_value:1.02
     //comment:gas_unit_price is the price that the user is willing to pay, denominated in octa.
@@ -589,7 +648,8 @@ message AptosGas {
 
 message AptosSendNative {
     //symbol_value:1
-    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support
+    // testnets.
     uint64 chain_id = 1;
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
@@ -606,7 +666,8 @@ message AptosSendNative {
 
 message AptosSendCoin {
     //symbol_value:"1"
-    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support
+    // testnets.
     uint64 chain_id = 1;
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
@@ -618,7 +679,8 @@ message AptosSendCoin {
     //comment:coin_tag identifies the coin to be sent.
     string coin_tag = 4;
     //symbol_value:"0.001"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals]
     string amount = 5;
     //specify the gas fee for the transaction.
     AptosGas gas_fee = 6;
@@ -626,7 +688,8 @@ message AptosSendCoin {
 
 message AptosSendCustom {
     //symbol_value:"1"
-    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support testnets.
+    //comment:Please use Chain ID 1 for Aptos Mainnet and 126 for Movement Mainnet. MPCVault does not currently support
+    // testnets.
     uint64 chain_id = 1;
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
     //comment:from is the sender wallet address. It has to be in this vault.
@@ -693,6 +756,31 @@ message SuiSendCustom {
     bytes payload = 2;
 }
 
+//comment:NativeAssetTransfer describes one transfer of the enclosing network's native asset. Its network and paying
+// account are determined by the enclosing transaction.
+message NativeAssetTransfer {
+    //comment:to is the recipient account address in the address format of the enclosing network.
+    string to = 1;
+    //symbol_value:"10000"
+    //comment:amount is a non-negative decimal integer string in the network's smallest native-asset unit,
+    // without a decimal point or exponent. Chain-specific limits apply. "0" means zero; empty means unavailable.
+    string amount = 2;
+}
+
+//comment:SolanaJito is an output-only additional payment plan, paid by the transaction's from account.
+// Presence identifies a Jito request, but payment details may be unavailable before preparation.
+// ClientSigner requires both actual payments, must enforce recipient and fee limits, and must match prepared transfers
+// exactly. Changed recipients or amounts require verification and callback acceptance again. Missing details do not
+// authorize spending. CreateSigningRequest rejects this object.
+message SolanaJito {
+    //comment:tip is the Jito tip payment. Recipient and amount are required before delivery to ClientSigner.
+    // Amount is in lamports and must fit uint64 on Solana and Sonic SVM.
+    NativeAssetTransfer tip = 1;
+    //comment:platform_fee is the platform payment. Recipient and amount are required before delivery to ClientSigner,
+    // including for "0". Amount is in lamports and must fit uint64 on Solana and Sonic SVM.
+    NativeAssetTransfer platform_fee = 2;
+}
+
 message SolanaSendNative {
     //required:true
     //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
@@ -707,8 +795,14 @@ message SolanaSendNative {
     //comment:value is the amount of the native token to send, denominated in lamports.
     string value = 3;
     //symbol_value:"101"
-    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
+    //comment:chain_id is a legacy field, not a native Solana ID. Creation selects the network by the solana_* or
+    // sonic_svm_* member, ignoring this value. Reads may return 0 for either network, so it cannot identify Sonic SVM.
+    // Testnets are unsupported.
     uint64 chain_id = 4;
+    //comment:jito is the output-only additional payment plan, separate from value. See SolanaJito for signing
+    // requirements.
+    // Rejected by CreateSigningRequest.
+    SolanaJito jito = 5;
 }
 
 message SolanaSendSPLToken {
@@ -726,14 +820,20 @@ message SolanaSendSPLToken {
     string mint_address = 3;
     //required:true
     //symbol_value:"1000000000000000"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals]
     string amount = 4;
     //symbol_value:101
-    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
+    //comment:chain_id is a legacy field, not a native Solana ID. Creation selects the network by the solana_* or
+    // sonic_svm_* member, ignoring this value. Reads may return 0 for either network, so it cannot identify Sonic SVM.
+    // Testnets are unsupported.
     uint64 chain_id = 5;
     //symbol_value:6
     //comment:decimals is the decimals of the token.
     google.protobuf.Int64Value decimals = 6;
+    //comment:jito is the output-only native-asset payment plan, separate from the SPL-token amount.
+    // See SolanaJito for signing requirements. Rejected by CreateSigningRequest.
+    SolanaJito jito = 7;
 }
 
 message TonSendNative {
@@ -769,7 +869,8 @@ message TonSendToken {
     string mint_address = 3;
     //required:true
     //symbol_value:"0.001"
-    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount * 10^decimals]
+    //comment:amount is the amount of tokens to send. You should use whole integer representation. [amount *
+    // 10^decimals]
     string amount = 4;
     //required:true
     //symbol_value:"ton send token comment"
@@ -801,15 +902,33 @@ message SolanaSendCustom {
     //comment:tx_base64 is the base64 encoded transaction.
     repeated string tx_base64 = 2;
     //symbol_value:101
-    //comment:please use 101 for solana mainnet and 0 for sonic svm mainnet. MPCVault does not support testnet at the moment.
+    //comment:chain_id is a legacy field, not a native Solana ID. Creation selects the network by the solana_* or
+    // sonic_svm_* member, ignoring this value. Reads may return 0 for either network, so it cannot identify Sonic SVM.
+    // Testnets are unsupported.
     uint64 chain_id = 3;
+    //comment:jito is the output-only payment plan appended separately from tx_base64 transactions.
+    // See SolanaJito for signing requirements. Rejected by CreateSigningRequest.
+    SolanaJito jito = 4;
 }
 
+//comment:StellarMemoType defines the memo format; digits alone never imply ID.
+// Empty memo means no memo and reads return UNSPECIFIED.
+// CreateSigningRequest rejects unknown enum values. Reads return the effective type.
 enum StellarMemoType {
+    //comment:STELLAR_MEMO_TYPE_UNSPECIFIED preserves legacy creation behavior: an empty memo means no memo and a nonempty
+    // memo means TEXT.
     STELLAR_MEMO_TYPE_UNSPECIFIED = 0;
+    //comment:STELLAR_MEMO_TYPE_TEXT is UTF-8 text of at most 28 bytes, not 28 characters. An empty value retains the
+    // existing no-memo meaning.
     STELLAR_MEMO_TYPE_TEXT = 1;
+    //comment:STELLAR_MEMO_TYPE_ID is an unsigned 64-bit integer represented by decimal digits. "0" is a valid ID memo;
+    // an empty string means no memo.
     STELLAR_MEMO_TYPE_ID = 2;
+    //comment:STELLAR_MEMO_TYPE_HASH is a 32-byte hash represented by exactly 64 hexadecimal characters without a 0x
+    // prefix. An empty string means no memo.
     STELLAR_MEMO_TYPE_HASH = 3;
+    //comment:STELLAR_MEMO_TYPE_RETURN is a 32-byte return hash represented by exactly 64 hexadecimal characters without
+    // a 0x prefix. An empty string means no memo.
     STELLAR_MEMO_TYPE_RETURN = 4;
 }
 
@@ -827,8 +946,11 @@ message StellarSendNative {
     //comment:value is the amount of the native asset to send.
     string value = 3;
     //symbol_value:"stellar send native"
-    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
+    //comment:memo is interpreted using memo_type. Empty means no memo. See StellarMemoType for type-specific formats
+    // and limits.
     string memo = 4;
+    //comment:memo_type selects the format: UNSPECIFIED maps empty to no memo and nonempty to TEXT. Reads return the
+    // effective type. See StellarMemoType for limits.
     StellarMemoType memo_type = 5;
 }
 
@@ -846,8 +968,11 @@ message StellarChangeTrust {
     //comment:asset_issuer is the issuer of the asset.
     string asset_issuer = 3;
     //symbol_value:"stellar change trust"
-    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
+    //comment:memo is interpreted using memo_type. Empty means no memo. See StellarMemoType for type-specific formats
+    // and limits.
     string memo = 4;
+    //comment:memo_type selects the format: UNSPECIFIED maps empty to no memo and nonempty to TEXT. Reads return the
+    // effective type. See StellarMemoType for limits.
     StellarMemoType memo_type = 5;
 }
 
@@ -870,14 +995,19 @@ message StellarSendAsset {
     string asset_issuer = 4;
     //required:true
     //symbol_value:"10.1"
-    //comment:amount is the amount of assets to send. You should use whole integer representation.
+    //comment:amount is the amount of assets to send, in the same decimal form as StellarSendNative.value. 10.1 means
+    // 10.1 of the asset.
     string amount = 5;
     //symbol_value:"stellar send asset"
-    //comment:optional. Empty means no memo. memo_type defaults to text. Text is at most 28 UTF-8 bytes and is kept as entered. ID is a decimal string from 0 to 18446744073709551615. Hash and return are 64 hex characters without a 0x prefix.
+    //comment:memo is interpreted using memo_type. Empty means no memo. See StellarMemoType for type-specific formats
+    // and limits.
     string memo = 6;
+    //comment:memo_type selects the format: UNSPECIFIED maps empty to no memo and nonempty to TEXT. Reads return the
+    // effective type. See StellarMemoType for limits.
     StellarMemoType memo_type = 7;
 }
 
+//comment:StellarSendCustom signs an existing transaction envelope or the wallet's matching Soroban authorizations.
 message StellarSendCustom {
     //required:true
     //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
@@ -885,10 +1015,13 @@ message StellarSendCustom {
     string from = 1;
     //required:true
     //symbol_value:"AQAAAAAAAAAAAAAAAAAAAAAA$999999999999AAAAACAAQABA1kYs4/+LFCaNxckNNsERMcgSwr19dR72mxW6j8qJpGv87LKehWtuOxHGbCNbhMcl4yGWqGCnDXiSuHbqRK1X00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQICAAEMAgAAKCGAQAAAAAAAA=="
-    //comment:tx_base64 is the base64 encoded transaction.
+    //comment:tx_base64 is the Base64 transaction XDR. Inserting Soroban authorization signatures changes the envelope
+    // hash,
+    // so authorization insertion and envelope signing in one attempt are rejected; separate signing steps are required.
     string tx_base64 = 2;
 }
 
+//comment:CreateSigningRequestRequest accepts only the request types listed in type.
 message CreateSigningRequestRequest {
     //type is the type of the signing request. It is a oneof field.
     oneof type {
@@ -933,14 +1066,16 @@ message CreateSigningRequestRequest {
     //comment:vault_uuid is the UUID of the vault that the signing request will be created in.
     google.protobuf.StringValue vault_uuid = 1001;
     //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRsdeghjcmkidagdk test"
-    //comment:It is used to identify the where we should send the callback to. If empty, we will show the signing request in the MPCVault mobile app for manual signing.Note that if the signing request is created by an api wallet, this field must be set as api wallets can only be signed by the api client signer at the moment.
+    //comment:callback_client_signer_public_key selects the callback ClientSigner. Empty routes to manual signing
+    // in the MPCVault mobile app. Required for API wallets, which can only be signed by a ClientSigner.
     google.protobuf.StringValue callback_client_signer_public_key = 1002;
-    //comment:If true, the tx will be automatically broadcasted after signing. Not supported for Message types, RawMessage, or txs on non-system (custom EVM) chains. All other standard txs on system chains are supported.
+    //comment:broadcast_tx enables automatic broadcasting after signing. Unsupported for messages, RawMessage
+    // and custom EVM networks; supported for other standard transactions on system networks.
     google.protobuf.BoolValue broadcast_tx = 1003;
 }
 
 message CreateSigningRequestResponse {
-    //signing_request is the signing request that was created.
+    //comment:signing_request is the created request. Detail-only fields are omitted; see each SigningRequest field.
     SigningRequest signing_request = 1;
     Error error = 2;
 }
@@ -968,6 +1103,8 @@ message GetSigningRequestDetailsResponse {
     Error error = 2;
 }
 
+//comment:SigningRequest uses the same payload for API, MPCVault app and dApp requests across read endpoints.
+// The selected type identifies the payload; field comments specify visibility and execution restrictions.
 message SigningRequest {
     enum Status {
         STATUS_UNSPECIFIED = 0;
@@ -981,14 +1118,16 @@ message SigningRequest {
     string uuid = 1;
     //required:true
     //symbol_value:"0
-    //comment:status is the status of the signing request. STATUS_SUCCEEDED only means that the signing request has been signed.it does not mean that the transaction itself is successful.
+    //comment:status is the operation status. STATUS_SUCCEEDED means signing completed for transactions and messages,
+    // without confirming broadcast or on-chain execution. Management requests may succeed without signatures or transactions.
     Status status = 2;
     //symbol_value:"failed reason"
     //comment:failed_reason is the reason why the signing request failed, only set if status is STATUS_FAILED.
     string failed_reason = 3;
-    //required:true
     //symbol_value:"3Eq21vXNB5s86c62bVuUfTerseghjkuUqRPBmGRJhyTA"
-    //comment:tx_hash is the hash of the transaction, only set if status is STATUS_SUCCEEDED.This does not mean that the transaction it self is successful. It only means that the signing request has been signed.
+    //comment:tx_hash is the transaction hash available after signing, without confirming broadcast or on-chain
+    // execution.
+    // Message and management requests may have none.
     string tx_hash = 4;
     //symbol_value:1744274467154
     //comment:creation_timestamp is the timestamp when the signing request was created.
@@ -997,6 +1136,7 @@ message SigningRequest {
     oneof type {
         EVMSendNative evm_send_native = 6;
         EVMSendERC20 evm_send_erc20 = 7;
+        //comment:evm_send_custom is a custom EVM transaction, including mapped dApp transactions.
         EVMSendCustom evm_send_custom = 8;
         BTCSendNative btc_send_native = 9;
         TronSendNative tron_send_native = 10;
@@ -1004,13 +1144,17 @@ message SigningRequest {
         TronSendTRC20 tron_send_trc20 = 12;
         AptosSendNative aptos_send_native = 13;
         AptosSendCoin aptos_send_coin = 14;
+        //comment:aptos_send_custom is an Aptos transaction payload, including dApp transactions other than
+        // SIGN_TRANSACTION.
         AptosSendCustom aptos_send_custom = 15;
         SuiSendNative sui_send_native = 16;
         SuiSendCoin sui_send_coin = 17;
+        //comment:sui_send_custom is a custom Sui transaction, including mapped dApp transactions.
         SuiSendCustom sui_send_custom = 18;
         SolanaSendNative solana_send_native = 19;
         SolanaSendSPLToken solana_send_spl_token = 20;
         CreateWalletRequest create_wallet = 21;
+        //comment:evm_message includes dApp personal_sign, typed-data and eth_sign messages; type identifies the method.
         EVMMessage evm_message = 22;
         AptosMessage aptos_message = 23;
         SolanaMessage solana_message = 24;
@@ -1018,90 +1162,577 @@ message SigningRequest {
         SuiMessage sui_message = 26;
         TonSendNative ton_send_native = 27;
         TonSendToken ton_send_token = 28;
+        //comment:ton_send_custom is a custom TON transaction, including mapped dApp transactions.
         TonSendCustom ton_send_custom = 29;
         TonMessage ton_message = 30;
+        //comment:solana_send_custom is a custom Solana transaction, including mapped dApp transactions.
         SolanaSendCustom solana_send_custom = 31;
         SolanaSendNative sonic_svm_send_native = 32;
         SolanaSendSPLToken sonic_svm_send_spl_token = 33;
         SolanaSendCustom sonic_svm_send_custom = 34;
         StellarSendNative stellar_send_native = 35;
         StellarSendAsset stellar_send_asset = 36;
+        //comment:stellar_send_custom is a Stellar transaction, including dApp transactions other than challenges
+        // and authorization entries, which use stellar_challenge and stellar_auth_entry.
         StellarSendCustom stellar_send_custom = 37;
         StellarChangeTrust stellar_change_trust = 38;
-        // The members below are requests that cannot be created through this API. Their messages have no fields yet:
-        // the member that is set tells what kind of request it is.
+        //comment:swap_approval is a fungible-asset spending authorization before a swap, with separate quote context.
+        // Not accepted by CreateSigningRequest.
         SwapApproval swap_approval = 39;
+        //comment:swap_send is a swap transaction with separate quote context. Not accepted by CreateSigningRequest.
         SwapSend swap_send = 40;
+        //comment:batch_payment_approval is a spending authorization with separate planned batch-payment context.
+        // Not accepted by CreateSigningRequest.
         BatchPaymentApproval batch_payment_approval = 41;
+        //comment:batch_payment_send is a batch payment transaction. Not accepted by CreateSigningRequest.
         BatchPaymentSend batch_payment_send = 42;
+        //comment:fiat_payment is the token transfer funding a fiat order. Not accepted by CreateSigningRequest.
         FiatPayment fiat_payment = 43;
+        //comment:aptos_register_coin registers a coin on an Aptos account. Not accepted by CreateSigningRequest.
         AptosRegisterCoin aptos_register_coin = 44;
+        //comment:aptos_open_token enables direct NFT receipt on an Aptos account. Not accepted by CreateSigningRequest.
         AptosOpenToken aptos_open_token = 45;
+        //comment:vault_creation approves a new vault without a chain transaction.
+        // Not accepted by CreateSigningRequest or ExecuteSigningRequests.
         VaultCreation vault_creation = 46;
+        //comment:vault_setting_update identifies a vault setting change without exposing its details.
+        // The body is empty. Not accepted by CreateSigningRequest or ExecuteSigningRequests.
         VaultSettingUpdate vault_setting_update = 47;
+        //comment:root_key_generation generates an MPC root key without a chain transaction.
+        // Not accepted by CreateSigningRequest or ExecuteSigningRequests.
         RootKeyGeneration root_key_generation = 48;
+        //comment:root_key_backup contains public encryption metadata for an organization root-key backup, never
+        // ciphertext.
+        // Not accepted by CreateSigningRequest or ExecuteSigningRequests.
         RootKeyBackup root_key_backup = 49;
+        //comment:key_access_grant grants a member or ClientSigner key access without a chain transaction.
+        // Not accepted by CreateSigningRequest or ExecuteSigningRequests.
         KeyAccessGrant key_access_grant = 50;
+        //comment:stellar_message is a dApp Stellar message with raw stored content. Not accepted by
+        // CreateSigningRequest.
+        StellarMessage stellar_message = 51;
+        //comment:stellar_auth_entry is a Stellar authorization entry, including dApp SIGN_AUTH_ENTRY messages.
+        // Not accepted by CreateSigningRequest.
+        StellarAuthEntry stellar_auth_entry = 52;
+        //comment:stellar_challenge is a dApp Stellar CHALLENGE_TRANSACTION. Not accepted by CreateSigningRequest.
+        StellarChallenge stellar_challenge = 53;
+        //comment:aptos_sign_transaction is a dApp Aptos SIGN_TRANSACTION. Not accepted by CreateSigningRequest.
+        AptosSignTransaction aptos_sign_transaction = 54;
+        //comment:dapp_request is the stored fallback for a dApp transaction or message without a chain-specific
+        // payload.
+        DAppRequest dapp_request = 55;
     }
     //symbol_value:"send 1 eth to 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F    "
     //comment:notes is the transaction notes for the signing request.
     google.protobuf.StringValue notes = 999;
-    //required:true
     //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
-    //comment:vault_uuid is the UUID of the vault that the signing request was created in.
+    //comment:vault_uuid identifies the associated vault. Unset for organization-scoped requests,
+    // such as root-key generation, backup and organization-level key-access grants.
     google.protobuf.StringValue vault_uuid = 1000;
     //symbol_value:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL3OzFAKNGHsMtBpTemiAI3V1AxRs de g h j c m k i da g d k test"
-    //comment:callback_client_signer_public_key is the public key of the api client signer for callback. This field can be empty.
+    //comment:callback_client_signer_public_key is the public key of the api client signer for callback. This field can
+    // be empty.
     google.protobuf.StringValue callback_client_signer_public_key = 1001;
     //symbol_value:"eyJtZXNzYWdlcyI6W3siYWRkcmVzcyI6IkVRRC1IR09CYlh4dzNQWWQ4SzM5TXN3SlZYN1lvb19oM1FTRWl1cFdFUXA2dWlOVSIsImFtb3VudCI6IjE5MDAwMDAwMCIsInBheWxvYWQiOiJ0ZTZjY2tFQkFnRUFwZ0FCckErS2ZxVUFBQUJUVVpIL0ZpQStpQUR2TzVrQ29uR3lvQnlKT0tVanorSk9jWVI2cnJhbUlBQWUxRXAzckE1d25RQWhCUlhOT04yMUFHa1NqN0hVaUJ5N0F2UHBwYmVialh2NWl0Z1h3VnpzSE1nTzVyS0JBUUNWSlpPRllZQUNLaGFqRmt4TldxTVRQekVRL3hCSmJnREtpc2lyNy94UUorQWswelNBdytZRWllc0FJUVVWelRqZHRRQnBFbyt4MUlnY3V3THo2YVczbTQxNytZcllGOEZjN0J6UUZKNjVtZz09In1dLCJ2YWxpZF91bnRpbCI6MTcyMjQ3NzQ3MDU4MiwiZnJvbSI6IjA6eDg0MTQ1NzM0RTM3NkQ0MDFBNDRBM0VDNzUyMjA3MkVDMEJDRkE2OTZERTZFMzVFRkU2MkI2MDVGMDU3M0IwNzMiLCJuZXR3b3JrIjoiLTIzOSJ9"
-    //comment:simulation is the transaction simulation for the signing request.
+    //comment:simulation is the available transaction simulation. Returned only by GetSigningRequestDetails.
     bytes simulation = 1002;
-    //evm_input_data_decode is the evm transaction input data decode for the signing request.
+    //comment:evm_input_data_decode is the available decoded EVM transaction input. Returned only by
+    // GetSigningRequestDetails.
     EVMInputDataDecode evm_input_data_decode = 1003;
-    //comment:signatures are the per-share signature results, only set when the request is a transaction/message type and has been signed. Same shape as ExecuteSigningRequestsResponse.signatures.
+    //comment:signatures contains available complete results after signing, in SignatureContainer format.
+    // Returned only to full access tokens, including in list and batch payment responses; never to read-only tokens.
     SignatureContainer signatures = 1004;
-    //comment:source is where an inbound dApp request came from. It is set ONLY for requests that arrived from a dApp (WalletConnect, plugin or MMI) and is not set for any other request.
+    //comment:source identifies inbound dApp requests from WalletConnect, plugin or MMI. Unset for other requests.
     RequestSource source = 1005;
+    //comment:signed_transaction is available after signing, returned only by GetSigningRequestDetails to full access
+    // tokens.
+    // Encoding: EVM = 0x-prefixed transaction hex; Bitcoin = wire-transaction hex without 0x;
+    // TRON = signed protobuf transaction hex without 0x; Aptos = 0x-prefixed BCS SignedTransaction hex;
+    // Solana = Base64 transaction bytes; Stellar = Base64 envelope XDR; TON = Base64 BoC;
+    // Sui = SignedTransaction JSON text. Absent for messages and management requests.
+    // Co-signed transactions may still need other parties' signatures before broadcast.
+    string signed_transaction = 1006;
+    //comment:custom_categories are the MPCVault request labels, including tags on dApp transactions.
+    repeated string custom_categories = 1008;
+    //symbol_value:2
+    //comment:required_approval_count is the stored manager approval requirement before signing.
+    // Returned only by GetSigningRequestDetails.
+    uint64 required_approval_count = 1009;
+    //symbol_value:1
+    //comment:remaining_approval_count is max(required_approval_count - count(approved_members), 0) while pending;
+    // otherwise 0. Returned only by GetSigningRequestDetails.
+    uint64 remaining_approval_count = 1010;
+    //comment:approved_members are the approvals already recorded, in stored order. Each entry is the user id and the
+    // time of that approval.
+    repeated SigningApproval approved_members = 1011;
+    //comment:pending_operation is the current action for the authenticated API user and actual ClientSigner binding.
+    // Returned by GetSigningRequestDetails, GetSigningRequestList and GetPendingSigningRequests only.
+    // Unset for terminal requests or when no action applies; evaluation failures return an error.
+    // See SigningRequestOperation for approval/signing stages. Execution revalidates permissions and policy.
+    SigningRequestOperation pending_operation = 1012;
 }
 
-// SwapApproval is the token approval that precedes a swap. It has no fields yet.
-message SwapApproval {}
+//comment:SigningApproval is one recorded approval on a signing request.
+message SigningApproval {
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:user_uuid is the user who approved.
+    string user_uuid = 1;
+    //symbol_value:1744274467154
+    //comment:timestamp is when the approval was recorded, in Unix milliseconds.
+    uint64 timestamp = 2;
+}
 
-// SwapSend is the swap transaction itself. It has no fields yet.
-message SwapSend {}
+//comment:DAppRequest preserves a dApp transaction or message without a chain-specific payload.
+// The claimed website is on SigningRequest.source.website.
+message DAppRequest {
+    //symbol_value:"SIGN_TRANSACTION"
+    //comment:request_type is the stored dApp request type.
+    string request_type = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the stored from address.
+    string from = 3;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:to is the stored to address.
+    string to = 4;
+    //symbol_value:"1"
+    //comment:amount is the stored amount text, when present. Its unit and meaning depend on the request type and
+    // network.
+    string amount = 5;
+    //comment:data is the stored call data or message text in the original request format.
+    string data = 6;
+    //comment:network identifies the blockchain network of the original dApp transaction or message using its protocol
+    // and native network identifier.
+    NetworkInfo network = 7;
+}
 
-// BatchPaymentApproval is the token approval that precedes a batch payment. It has no fields yet.
-message BatchPaymentApproval {}
+//comment:ChainTransaction is the chain body of a request that also carries MPCVault fields. The member that is set uses
+// the same message as a plain send of that chain.
+message ChainTransaction {
+    oneof body {
+        //comment:evm_send_native uses the same fields as EVMSendNative.
+        EVMSendNative evm_send_native = 1;
+        //comment:evm_send_erc20 uses the same fields as EVMSendERC20.
+        EVMSendERC20 evm_send_erc20 = 2;
+        //comment:evm_send_custom uses the same fields as EVMSendCustom.
+        EVMSendCustom evm_send_custom = 3;
+        //comment:solana_send_native uses the same fields as SolanaSendNative.
+        SolanaSendNative solana_send_native = 4;
+        //comment:solana_send_spl_token uses the same fields as SolanaSendSPLToken.
+        SolanaSendSPLToken solana_send_spl_token = 5;
+        //comment:solana_send_custom uses the same fields as SolanaSendCustom.
+        SolanaSendCustom solana_send_custom = 6;
+        //comment:sui_send_native uses the same fields as SuiSendNative.
+        SuiSendNative sui_send_native = 7;
+        //comment:sui_send_coin uses the same fields as SuiSendCoin.
+        SuiSendCoin sui_send_coin = 8;
+        //comment:sui_send_custom uses the same fields as SuiSendCustom.
+        SuiSendCustom sui_send_custom = 9;
+    }
+}
 
-// BatchPaymentSend is the batch payment transaction. It has no fields yet.
-message BatchPaymentSend {}
+//comment:NetworkInfo identifies a blockchain network by its protocol and native network identifier. The selected body
+// identifies the protocol family.
+message NetworkInfo {
+    oneof body {
+        EVMNetwork evm = 1;
+        BitcoinNetwork bitcoin = 2;
+        TronNetwork tron = 3;
+        AptosNetwork aptos = 4;
+        SuiNetwork sui = 5;
+        SolanaNetwork solana = 6;
+        TonNetwork ton = 7;
+        StellarNetwork stellar = 8;
+    }
+}
 
-// FiatPayment is a token transfer that pays a fiat order. It has no fields yet.
-message FiatPayment {}
+message EVMNetwork {
+    //symbol_value:1
+    //comment:chain_id is the native EIP-155 chain ID. For example, 1 identifies Ethereum Mainnet and 8453 identifies
+    // Base Mainnet.
+    uint64 chain_id = 1;
+}
 
-// AptosRegisterCoin registers a coin on an Aptos account so that it can receive it. It has no fields yet.
-message AptosRegisterCoin {}
+message BitcoinNetwork {
+    //comment:genesis_hash is the full genesis block hash as 64 lowercase hexadecimal characters without a 0x prefix,
+    // using the same byte order as Bitcoin RPC block hash strings. It distinguishes networks such as Mainnet and
+    // Testnet3.
+    string genesis_hash = 1;
+}
 
-// AptosOpenToken lets an Aptos account receive NFTs sent to it directly. It has no fields yet.
-message AptosOpenToken {}
+message TronNetwork {
+    //symbol_value:728126428
+    //comment:chain_id is TRON's native unsigned 32-bit chain ID, derived from the last four bytes of the genesis block
+    // hash. 728126428 identifies Mainnet.
+    uint32 chain_id = 1;
+}
 
-// VaultCreation is the approval of a new vault. It has no fields yet.
-message VaultCreation {}
+message AptosNetwork {
+    //symbol_value:1
+    //comment:chain_id is the native numeric chain ID returned by the ledger API. Use 1 for Aptos Mainnet and 126 for
+    // Movement Mainnet. Movement uses this protocol body.
+    uint64 chain_id = 1;
+}
 
-// VaultSettingUpdate is the approval of a change to the settings of a vault. It has no fields yet.
+message SuiNetwork {
+    //symbol_value:"35834a8a"
+    //comment:chain_identifier is Sui's native chain identifier: the first four bytes of the genesis checkpoint digest,
+    // encoded as eight lowercase hexadecimal characters without a 0x prefix. 35834a8a identifies Mainnet.
+    string chain_identifier = 1;
+}
+
+message SolanaNetwork {
+    //symbol_value:"5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+    //comment:genesis_hash is the full, case-sensitive Base58 genesis hash returned by getGenesisHash. Sonic SVM uses
+    // this protocol body with its own genesis hash.
+    string genesis_hash = 1;
+}
+
+message TonNetwork {
+    //symbol_value:-239
+    //comment:global_id is the signed native network global_id. -239 identifies TON Mainnet; preserve its sign.
+    int32 global_id = 1;
+}
+
+message StellarNetwork {
+    //symbol_value:"Public Global Stellar Network ; September 2015"
+    //comment:network_passphrase is the public network passphrase used to compute the Stellar network ID. Preserve the
+    // exact text, including case, spaces and punctuation.
+    string network_passphrase = 1;
+}
+
+//comment:SwapQuoteAsset is the asset, account and amount on one side of a swap quote.
+message SwapQuoteAsset {
+    //comment:network identifies the blockchain network of this side of the quote using its protocol and native network
+    // identifier.
+    NetworkInfo network = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:account_address is the source account on the from side or the recipient account on the to side of the
+    // quote.
+    string account_address = 2;
+    //symbol_value:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    //comment:asset_identifier identifies the asset on network: an EVM token contract address, a Solana mint address, or
+    // a Sui coin type. Empty for the native asset.
+    string asset_identifier = 3;
+    //symbol_value:"1"
+    //comment:amount is the amount text stored on the quote. It is not scaled by token decimals.
+    string amount = 4;
+}
+
+message SwapRoute {
+    //symbol_value:"route"
+    //comment:name is the route name stored on the quote.
+    string name = 1;
+    //symbol_value:"1.9"
+    //comment:min_receive_amount is the minimum receive amount as a decimal in whole units of SwapQuote.to's asset.
+    // SwapQuote.to.amount is the expected amount before slippage tolerance.
+    string min_receive_amount = 3;
+    //symbol_value:"0.00021"
+    //comment:gas_cost is the stored decimal fee estimate in whole units of SwapQuote.from.network's native asset,
+    // not a gas-unit count. Empty means unavailable.
+    string gas_cost = 4;
+    //symbol_value:"0.42"
+    //comment:gas_cost_usd is the US dollar figure stored on the quote. It is not a price looked up when the signing
+    // request is read.
+    string gas_cost_usd = 5;
+}
+
+//comment:SwapQuote is the quote stored next to a swap. It is not part of the chain transaction.
+message SwapQuote {
+    //comment:from is the asset sold, with its source account and amount from the stored quote.
+    SwapQuoteAsset from = 1;
+    //comment:to is the asset bought, with its recipient account and amount from the stored quote.
+    SwapQuoteAsset to = 2;
+    //comment:route is the route stored on the quote.
+    SwapRoute route = 3;
+    //symbol_value:"0.005"
+    //comment:slippage is the stored quote tolerance as a decimal ratio: "0.005" means 0.5%.
+    // It is neither the original custom input nor realized execution slippage. Empty means unavailable.
+    string slippage = 4;
+}
+
+//comment:EVMERC20Approval is an ERC20 allowance transaction on an EVM network, independent of the business requesting
+// it.
+message EVMERC20Approval {
+    //symbol_value:1
+    //comment:chain_id is the chain id of the network.
+    uint64 chain_id = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the account granting the allowance.
+    string from = 2;
+    //symbol_value:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    //comment:token_contract_address is the token contract being approved.
+    string token_contract_address = 3;
+    //symbol_value:"0x1111111254EEB25477B68fb85Ed929f73A960582"
+    //comment:spender is the address being approved to spend the token.
+    string spender = 4;
+    //symbol_value:"1000"
+    //comment:amount is the allowance in the token's smallest unit. The stored amount is multiplied by 10^decimals, the
+    // same scaling as EVMSendERC20.amount.
+    string amount = 5;
+    //comment:gas_fee uses the same fields as EVMGas.
+    EVMGas gas_fee = 6;
+    //symbol_value:1
+    //comment:nonce is the nonce of the approval. Empty or non-numeric stored nonces are omitted.
+    google.protobuf.Int64Value nonce = 7;
+}
+
+//comment:FungibleAssetApproval grants, updates or revokes permission to spend a holder's fungible asset.
+// The body identifies the chain and approval standard; currently only EVM ERC20 is supported.
+message FungibleAssetApproval {
+    oneof body {
+        //comment:evm_erc20_approval is an ERC20 allowance transaction on an EVM network.
+        EVMERC20Approval evm_erc20_approval = 1;
+    }
+}
+
+//comment:SwapApproval is a spending authorization for a fungible asset requested before a swap, with its quote context.
+message SwapApproval {
+    //comment:approval is the chain-specific spending authorization transaction for a fungible asset.
+    FungibleAssetApproval approval = 1;
+    //comment:swap_quote is the quote stored with the approval. It is not part of the allowance transaction. If the
+    // stored JSON cannot be parsed, this is left unset and the read still succeeds.
+    SwapQuote swap_quote = 2;
+}
+
+//comment:SwapSend is the swap transaction itself.
+message SwapSend {
+    //comment:transaction is the chain body. The member that is set uses the same message as a plain send of that chain.
+    ChainTransaction transaction = 1;
+    //comment:swap_quote is the quote stored with the swap. It is not part of the chain transaction. If the stored JSON
+    // cannot be parsed, this is left unset and the read still succeeds.
+    SwapQuote swap_quote = 2;
+}
+
+//comment:BatchPaymentBody describes the sender, asset and recipients, as approval context or the payment body.
+// BatchPaymentSend carries gas_limit and nonce separately.
+message BatchPaymentBody {
+    oneof transaction {
+        //comment:evm_send_native uses the same fields as EVMBatchSendNative.
+        EVMBatchSendNative evm_send_native = 1;
+        //comment:evm_send_erc20 uses the same fields as EVMBatchSendERC20.
+        EVMBatchSendERC20 evm_send_erc20 = 2;
+        //comment:btc_send_native uses the same fields as BTCBatchSendNative.
+        BTCBatchSendNative btc_send_native = 3;
+        //comment:sui_send_native uses the same fields as SUIBatchSendNative.
+        SUIBatchSendNative sui_send_native = 4;
+        //comment:sui_send_coin uses the same fields as SUIBatchSendCoin.
+        SUIBatchSendCoin sui_send_coin = 5;
+    }
+}
+
+//comment:BatchPaymentApproval is a spending authorization for a fungible asset that precedes a batch payment, with the
+// planned payment as separate context.
+message BatchPaymentApproval {
+    //comment:approval is the chain-specific spending authorization transaction. Its selected body carries the
+    // allowance, spender, fee settings and nonce when available.
+    FungibleAssetApproval approval = 1;
+    //comment:batch_context describes the planned batch payment. Its recipients and amounts are context and are not
+    // transfers performed by the authorization transaction.
+    BatchPaymentBody batch_context = 2;
+}
+
+//comment:BatchPaymentSend is the batch payment transaction.
+message BatchPaymentSend {
+    //comment:transaction is the chain body of the batch. gas_limit and nonce are not inside it.
+    BatchPaymentBody transaction = 1;
+    //symbol_value:"21000"
+    //comment:gas_limit is the gas limit stored on the batch transaction. Same type and quantity as EVMGas.gas_limit.
+    // Omitted when the batch transaction has none.
+    google.protobuf.StringValue gas_limit = 2;
+    //symbol_value:1
+    //comment:nonce is the nonce stored on the batch transaction. Same type as EVMSendNative.nonce. Empty or non-numeric
+    // stored nonces are omitted.
+    google.protobuf.Int64Value nonce = 3;
+}
+
+//comment:FiatBeneficiary is a fiat recipient display summary. Beneficiary IDs, emails, birth dates,
+// full account numbers and routing numbers are omitted for all tokens and signing callbacks.
+message FiatBeneficiary {
+    //symbol_value:"Ada Lovelace"
+    //comment:name is the display name. An individual uses the first and last name, or the full name when those are
+    // empty. A business uses the business name.
+    string name = 2;
+    //symbol_value:"individual"
+    //comment:kind is individual or business. Any other stored type leaves this empty.
+    string kind = 3;
+    //comment:bank_account is a display-only bank account summary. Other payment methods are not returned.
+    FiatBankAccount bank_account = 6;
+}
+
+//comment:FiatBankAccount is the same bank/payment summary for all tokens and signing callbacks.
+// Full account and routing numbers are never exposed.
+message FiatBankAccount {
+    //symbol_value:"6789"
+    //comment:account_last4 is the final four characters after removing spaces and hyphens.
+    // Set only when the normalized account has more than four ASCII letters/digits and no other characters.
+    // Otherwise empty; the full account is never returned as a fallback.
+    string account_last4 = 1;
+    //symbol_value:"checking"
+    //comment:account_type is the stored account type.
+    string account_type = 2;
+    //symbol_value:"CHASUS33"
+    //comment:bic is the stored BIC.
+    string bic = 4;
+    //symbol_value:"US"
+    //comment:country_code is the stored bank country code.
+    string country_code = 5;
+    //symbol_value:"Example Bank"
+    //comment:bank_name is the stored bank name.
+    string bank_name = 6;
+    //symbol_value:"WIRE"
+    //comment:transfer_type is the stored transfer type.
+    string transfer_type = 7;
+}
+
+//comment:FiatPayment is a token transfer that pays a fiat order.
+message FiatPayment {
+    //comment:transaction is the chain transfer that pays the order.
+    ChainTransaction transaction = 1;
+    //symbol_value:"USDC"
+    //comment:source_currency is the source currency code stored on the fiat order.
+    string source_currency = 2;
+    //symbol_value:"10"
+    //comment:source_amount is the gross decimal funding amount in whole source_currency units; "10" with "USDC" means
+    // 10 USDC.
+    // The nested transaction instead uses smallest units, such as "10000000". Empty means unavailable.
+    string source_amount = 3;
+    //symbol_value:"USD"
+    //comment:target_currency is the target currency code stored on the fiat order.
+    string target_currency = 4;
+    //symbol_value:"10"
+    //comment:target_amount is the decimal amount in whole target_currency units; "10" with "USD" means 10 US dollars.
+    // Empty means unavailable.
+    string target_amount = 5;
+    //comment:beneficiary is the recipient display summary; sensitive data is omitted for all tokens and callbacks.
+    // Missing or unparseable stored data leaves this unset without failing the read.
+    FiatBeneficiary beneficiary = 6;
+}
+
+//comment:AptosRegisterCoin registers a coin on an Aptos account so that it can receive it.
+message AptosRegisterCoin {
+    //symbol_value:1
+    //comment:chain_id follows the existing Aptos convention. Use 1 for Aptos Mainnet and 126 for Movement Mainnet.
+    uint64 chain_id = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the account that registered the coin. Get returns the address stored on the request.
+    string from = 2;
+    //symbol_value:"0x1::aptos_coin::AptosCoin"
+    //comment:coin_tag is the coin type being registered.
+    string coin_tag = 3;
+    //comment:gas_fee uses the same fields as AptosGas.
+    AptosGas gas_fee = 4;
+}
+
+//comment:AptosOpenToken lets an Aptos account receive NFTs sent to it directly.
+message AptosOpenToken {
+    //symbol_value:1
+    //comment:chain_id follows the existing Aptos convention. Use 1 for Aptos Mainnet and 126 for Movement Mainnet.
+    uint64 chain_id = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the account that opened direct NFT transfer. Get returns the address stored on the request.
+    string from = 2;
+    //comment:gas_fee uses the same fields as AptosGas.
+    AptosGas gas_fee = 3;
+}
+
+//comment:VaultCreation is the approval of a new vault.
+message VaultCreation {
+    //symbol_value:"Treasury"
+    //comment:name is the name of the vault being created.
+    string name = 1;
+    //symbol_value:"[]"
+    //comment:key_path is the derivation path stored for the vault.
+    string key_path = 2;
+}
+
+//comment:VaultSettingUpdate is an empty marker for a setting change in SigningRequest.vault_uuid's vault.
+// Setting details are not exposed.
 message VaultSettingUpdate {}
 
-// RootKeyGeneration is the generation of an MPC root key (ECDSA or EdDSA). It has no fields yet.
-message RootKeyGeneration {}
+//comment:RootKeyGeneration is the generation of an MPC root key (ECDSA or EdDSA).
+message RootKeyGeneration {
+    //symbol_value:"KEY_TYPE_ECC_SECP256K1"
+    //comment:key_type is KEY_TYPE_ECC_SECP256K1 or KEY_TYPE_ECC_ED25519.
+    KeyType key_type = 1;
+    //symbol_value:"[]"
+    //comment:key_path is the derivation path. An empty stored path is returned as [].
+    string key_path = 2;
+}
 
-// RootKeyBackup is the backup of the root keys of the organization. It has no fields yet.
-message RootKeyBackup {}
+//comment:RootKeyBackup describes a backup of the organization's root keys. Only its public encryption metadata is
+// returned; backup ciphertext is never returned by this API.
+message RootKeyBackup {
+    //comment:encryption_public_keys are three backup-share encryption recipient keys, not wallet root keys.
+    // Each is "ssh-ed25519 <Base64 key>" in SSH authorized-key format, without a trailing comment.
+    repeated string encryption_public_keys = 1;
+}
 
-// KeyAccessGrant grants a member or an API client signer access to a key. It has no fields yet.
-message KeyAccessGrant {}
+//comment:KeyAccessGrant grants a member or an API client signer access to a key. SigningRequest.vault_uuid identifies
+// the vault scope; an unset vault_uuid means an organization-level grant.
+message KeyAccessGrant {
+    //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
+    //comment:user_uuid is the member or client signer receiving the key.
+    string user_uuid = 2;
+    //symbol_value:"[]"
+    //comment:key_path is the derivation path. An empty stored path is returned as [] when a key type is set.
+    string key_path = 3;
+    //symbol_value:"[KEY_TYPE_ECC_SECP256K1]"
+    //comment:key_types are KEY_TYPE_ECC_SECP256K1, KEY_TYPE_ECC_ED25519, or both.
+    repeated KeyType key_types = 4;
+}
 
-// RequestSource describes where an inbound request came from. It is set only for requests that arrived from a dApp.
-// It identifies the intake channel; it does not authenticate the dApp or the person behind the request.
+message StellarMessage {
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the account that signs the message.
+    string from = 1;
+    //symbol_value:"aGVsbG8="
+    //comment:content is the raw bytes of the stored message string. It is not hex-decoded.
+    bytes content = 2;
+}
+
+message StellarAuthEntry {
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the account that signs the authorization entry.
+    string from = 1;
+    //symbol_value:"QVFBLQ=="
+    //comment:content preserves stored authorization text bytes without decoding or normalization.
+    // Current plugin requests store Base64 Soroban HashIdPreimage XDR, not SorobanAuthorizationEntry bytes.
+    // ProtoJSON adds a Base64 transport layer: decode it to recover the stored text, then decode the inner Base64
+    // when applicable. Historical text may use another format.
+    bytes content = 2;
+}
+
+message StellarChallenge {
+    //symbol_value:"GCUWYX3GVZSYBHORC4L7O6CKJX6U6N5GSU8AP44RX5VP4XRDIACTJO32"
+    //comment:from is the account that signs the SEP-10 challenge.
+    string from = 1;
+    //symbol_value:"AQAAAAAAAAAAAAAAAAAAAAAA$999999999999AAAAACAAQABA1kYs4/+LFCaNxckNNsERMcgSwr19dR72mxW6j8qJpGv87LKehWtuOxHGbCNbhMcl4yGWqGCnDXiSuHbqRK1X00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQICAAEMAgAAKCGAQAAAAAAAA=="
+    //comment:tx_base64 is the base64 encoded challenge transaction.
+    string tx_base64 = 2;
+}
+
+//comment:AptosSignTransaction co-signs a whole transaction, unlike AptosSendCustom's transaction payload.
+message AptosSignTransaction {
+    //symbol_value:1
+    //comment:chain_id follows the existing Aptos convention. Use 1 for Aptos Mainnet and 126 for Movement Mainnet.
+    uint64 chain_id = 1;
+    //symbol_value:"0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F"
+    //comment:from is the account co-signing the transaction.
+    string from = 2;
+    //symbol_value:"AQID"
+    //comment:transaction is the original transaction before any as_fee_payer override.
+    // Stored 0x-prefixed hex is decoded to bytes; other text is returned as raw bytes.
+    // Applying from as fee payer during signing does not rewrite this field.
+    bytes transaction = 3;
+    //comment:gas_fee uses the same fields as AptosGas.
+    AptosGas gas_fee = 4;
+    //symbol_value:true
+    //comment:as_fee_payer applies from as fee payer during signing when true, authorizing this wallet to pay gas.
+    // When false, the original transaction's fee-payer address is retained.
+    bool as_fee_payer = 5;
+}
+
+//comment:RequestSource describes an inbound dApp's intake channel, not authenticated dApp or user identity.
 message RequestSource {
     enum Type {
         TYPE_UNSPECIFIED = 0;
@@ -1109,7 +1740,9 @@ message RequestSource {
         TYPE_PLUGIN = 2;
         TYPE_MMI = 3;
     }
-    //comment:type is the intake channel through which MPCVault received the request. MPCVault sets it and the dApp cannot choose it, but it identifies the channel only: it does not prove which dApp, plugin or person is behind the request (a plugin request, for example, can be created by any member of the vault). Do not use it, or website, to approve a request on its own.
+    //comment:type is the intake channel set by MPCVault, not chosen by the dApp.
+    // It does not verify the dApp or person; any vault member can create a plugin request.
+    // Neither type nor website alone is sufficient to approve a request.
     Type type = 1;
     //symbol_value:"app.uniswap.org"
     //comment:website is the website the dApp claimed for itself. It is not verified: treat it as untrusted input.
@@ -1139,7 +1772,8 @@ message BatchPaymentRecipient {
     string address = 1;
     //required:true
     //symbol_value:"0.001"
-    //comment:amount is the amount of the tokens to send.For native tokens such as ether/btc, the amount is denominated in wei/satoshi.For ERC20 tokens you should use whole integer representation. [amount * 10^decimals],For bitcoin, the amount is denominated in satoshi.
+    //comment:amount is the integer amount in the asset's smallest unit: wei for EVM native assets,
+    // satoshi for Bitcoin, or whole-token amount multiplied by 10^decimals for tokens.
     string amount = 2;
     //symbol_value:"Monthly payroll"
     //comment:notes is a note for this entry in the batch payment.
@@ -1159,6 +1793,10 @@ message EVMBatchSendNative {
     //symbol_value:"[{address: 0x71C7656EC7ab88bd32g47dgdhhssq245f6d8976F, amount: 0.001, notes: Monthly payroll}]"
     //comment:recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 3;
+    //comment:batch_contract_address is the output-only execution contract, not a recipient.
+    // ClientSigner verifies the prepared transaction target against it. Rejected by CreateBatchPayment;
+    // it cannot select a contract.
+    string batch_contract_address = 4;
 }
 
 message EVMBatchSendERC20 {
@@ -1176,6 +1814,10 @@ message EVMBatchSendERC20 {
     string token_contract_address = 3;
     //recipients is the list of recipients.
     repeated BatchPaymentRecipient recipients = 4;
+    //comment:batch_contract_address is the output-only execution contract, separate from token_contract_address.
+    // ClientSigner verifies the prepared transaction target against it. Rejected by CreateBatchPayment;
+    // it cannot select a contract.
+    string batch_contract_address = 5;
 }
 
 message BTCBatchSendNative {
@@ -1291,20 +1933,20 @@ message GetSigningRequestListRequest {
     }
     //required:true
     //symbol_value:"9f5ee5fb-07f5-470c-a2ff-081e2d6d107a"
-    //comment:vault_uuid is the UUID of the vault that the signingRequest was created in.
+    //comment:vault_uuid is the required UUID of one vault accessible to the API token in its organization.
     string vault_uuid = 1;
     //symbol_value:1
-    //comment: page is the page number.
+    //comment:page is the page number, starting at 1.
     //default: 1
     google.protobuf.Int64Value page = 2;
     //symbol_value:10
-    //comment:limit is the number of signingRequests to return.
+    //comment:limit is the number of signing requests to return.
     //default: 10
     //max: 100
     google.protobuf.Int64Value limit = 3;
      //required:true
     //symbol_value:"0
-    //comment:sort_order is the order of the signing requests ,o to desc,1 to asc.
+    //comment:sort_order is descending (0, default) or ascending (1).
     SortOrder sort_order = 4;
 }
 
@@ -1337,11 +1979,84 @@ message UpdateWalletRequest {
     //comment:name is the new name for the wallet. Empty means no change. min length is 1, max length is 85.
     string name = 2;
     //symbol_value:"STATUS_ACTIVE"
-    //comment:status is the new status. Empty means no change. Only "STATUS_ACTIVE" and "STATUS_ARCHIVED" are accepted; any other value is rejected. wallet_name and status can be set together, but at least one must be set.
+    //comment:status is the new wallet status: "STATUS_ACTIVE" or "STATUS_ARCHIVED"; other values are rejected. Empty
+    // means no change. Set name, status or both.
     string status = 3;
 }
 
 message UpdateWalletResponse {
     Wallet details = 1;
+    Error error = 2;
+}
+
+//comment:RejectSigningRequestsRequest selects ongoing wallet and vault-management requests using existing rejection
+// rules.
+// Requires a full access token. Requests without a vault and ClientSigner key grants are excluded.
+message RejectSigningRequestsRequest {
+    //symbol_value:"bb6f129f-bbe3-4d95-9f33-c32812e3e1c4"
+    //comment:vault_uuid selects one accessible vault in the API token's organization.
+    // Empty scans all vaults the token can access in that organization.
+    string vault_uuid = 1;
+}
+
+message RejectSigningRequestsResponse {
+    //comment:error reports a request-level failure or a failure count, without per-request details.
+    // Processing continues after individual failures; successful rejections are not rolled back.
+    // Unset when all selected requests are rejected or none match.
+    Error error = 1;
+}
+
+//comment:ApproveSigningRequestRequest records approval without signing or requiring a ClientSigner.
+// Available to full access and read-only API users, subject to authentication, subscription, organization/vault scope
+// and approval policy.
+message ApproveSigningRequestRequest {
+    //required:true
+    //comment:uuid identifies a pending transaction or message signing request to approve as the authenticated API user.
+    // Unsupported request types and approval policies are rejected.
+    string uuid = 1;
+}
+
+message ApproveSigningRequestResponse {
+    //comment:error is unset when approval succeeds, even if other approvals are still needed.
+    // Supported requests that already succeeded return success without adding another approval.
+    Error error = 1;
+}
+
+//comment:SigningRequestOperation is one current API workflow action. It is output-only and does not grant permission to
+// execute it.
+message SigningRequestOperation {
+    oneof body {
+        //comment:approve means the authenticated API user can contribute an approval still needed by the current
+        // policy.
+        ApproveOperation approve = 1;
+        //comment:sign means prerequisite approvals are satisfied for eligible ClientSigner targets.
+        // A ClientSigner's own approval performed with signing is included; a missing API-user approval is not.
+        SignOperation sign = 2;
+    }
+}
+
+message ApproveOperation {}
+
+message SignOperation {
+    //comment:client_signer_public_keys are distinct eligible SSH keys for this request's API signing path,
+    // not all organization signers. Keys are alternative targets, not cumulative requirements.
+    // Always nonempty; the current binding supports at most one target.
+    repeated string client_signer_public_keys = 1;
+}
+
+//comment:GetPendingSigningRequestsRequest only queries workflow actions; it does not prepare, approve, sign or reject.
+// A returned sign operation does not grant ExecuteSigningRequests permission.
+message GetPendingSigningRequestsRequest {
+    //comment:vault_uuid selects one accessible vault in the API token's organization, or all accessible vaults when
+    // empty.
+    // Requests without a vault are excluded.
+    string vault_uuid = 1;
+}
+
+message GetPendingSigningRequestsResponse {
+    //comment:signing_requests contains all ongoing requests with a pending_operation; no pagination or truncation.
+    // Uses the same payload and field visibility as GetSigningRequestList.
+    // Evaluation failures or the response-size limit return an RPC error instead of partial results.
+    repeated SigningRequest signing_requests = 1;
     Error error = 2;
 }

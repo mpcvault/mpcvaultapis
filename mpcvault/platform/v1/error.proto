@@ -51,4 +51,10 @@ enum ExecuteSigningRequestsErrorCode {
     EXECUTE_SIGNING_REQUESTS_ERROR_CODE_INSUFFICIENT_GAS_FEE = 3;
     // Address not in whitelist
     EXECUTE_SIGNING_REQUESTS_ERROR_CODE_ADDRESS_NOT_IN_WHITELIST = 4;
+    // The required approvals have not yet been collected.
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_POLICY_APPROVAL_PENDING = 5;
+    // The current policy denies the request or its requirements cannot be met.
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_POLICY_BLOCKED = 6;
+    // The policy configuration or required request data is missing, invalid or unavailable, or the policy check could not be completed.
+    EXECUTE_SIGNING_REQUESTS_ERROR_CODE_POLICY_CONFIGURATION_ERROR = 7;
 }
