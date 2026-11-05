@@ -38,6 +38,8 @@ enum ServiceErrorCode {
     SERVICE_ERROR_CODE_ORG_SUBSCRIBED_PLAN_EXPIRED = 2;
     // Organization subscribed plan not support
     SERVICE_ERROR_CODE_ORG_SUBSCRIBED_PLAN_NOT_SUPPORT = 3;
+    // Too many pending signing requests. Please reject some before creating new ones.
+    SERVICE_ERROR_CODE_ORG_PENDING_SIGNING_REQUEST_LIMIT_EXCEEDED = 5;
 }
 
 enum ExecuteSigningRequestsErrorCode {
