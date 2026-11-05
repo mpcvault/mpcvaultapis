@@ -110,8 +110,8 @@ func creatRequestBody() *apipb.CreateSigningRequestRequest {
 	req.Type = createSigningType
 	createSigningType.EvmSendErc20 = &apipb.EVMSendERC20{
 		ChainId:              137,                                          // polygon chain id
-		From:                 "0x71C7656EC7ab88b098defB751B7401B5f6d8976F", // sender address
-		To:                   "0x71C7656EC7ab88b098defB751B7401B5f6d8976F", // receiver address
+		From:                 "your wallet address",                        // sender address
+		To:                   "recipient wallet address",                   // receiver address
 		TokenContractAddress: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174", // USDC contract address on polygon
 		Amount:               "1000000",                                    // 1 USDC
 		GasFee:               nil,                                          // leave nil to use auto gas settings

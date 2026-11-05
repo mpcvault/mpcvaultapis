@@ -1,4 +1,4 @@
-const API_TOKEN = "6IH1AjBTe146xf9xYQb30jZSpvAyllySRWpvkVT6Yt0=";
+const API_TOKEN = "your API TOKEN";
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 const protobuf = require('protobufjs');
@@ -33,7 +33,7 @@ const evmGas = EVMGas.create(gasObject);
 const CreateSigningRequestRequest = {
     evm_send_custom: {
         "chain_id": 137, // polygon
-        "from": "0x544845005e42fE00a3C0E9735EEEC25Aa068b428", // your wallet address on MPCVault
+        "from": "your wallet address", // your wallet address on MPCVault
         "to": "", // leave empty for contract creation
         "value": "0", // amount of tokens to send, in this case 0
         "input": [], // contract byte code

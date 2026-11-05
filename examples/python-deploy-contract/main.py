@@ -7,7 +7,7 @@ import mpcvault.platform.v1.api_pb2 as pb
 import mpcvault.platform.v1.api_pb2_grpc as pb_grpc
 
 # ================= config =================
-CONTRACT = "6656336A6018dD......."  
+CONTRACT = "6656336A6018dD......."
 API_TOKEN = "your API TOKEN="
 HTTP_ENDPOINT = "https://api.mpcvault.com/v1"
 VAULT_UUID = "VAULT UUID"
@@ -34,7 +34,7 @@ def grpc_call():
         stub = pb_grpc.PlatformAPIStub(channel)
         evm_data_dict = {
             "chain_id": 137,
-            "from": "0xc0abaa254729296a45a3885639AC7E10F9d54979",  # 直接使用 `from`
+            "from": "your wallet address",  # 直接使用 `from`
             "to": "",
             "value": "0",
             "input": bytes.fromhex(CONTRACT),
@@ -67,10 +67,10 @@ def http_call():
 
         evm_data = {
             "chain_id": 137,
-            "from": "0xc0abaa254729296a45a3885639AC7E10F9d54979",
+            "from": "your wallet address",
             "to": "",
             "value": "0",
-            "input": bytes.fromhex(CONTRACT), 
+            "input": bytes.fromhex(CONTRACT),
             "gas_fee": gas_fee,
             "nonce": "0"  
         }

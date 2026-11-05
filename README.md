@@ -2,6 +2,12 @@
 
 This repo contains public interface definitions of MPCVault APIs.
 
+Example values such as `<string>` are placeholders for your own resource IDs,
+wallet addresses, public keys, signatures, and encoded payloads. Replace them
+before making API calls. Network identifiers and published token contract
+addresses shown in examples are public constants. Ordinary numbers, booleans,
+enums, and generic text remain illustrative values rather than placeholders.
+
 MPCVault APIs use Protocol Buffers version 3 (proto3) as the Interface Definition Language (IDL) to define the API interface and the structure of the payload messages.
 
 You can access MPCVault APIs published in this repository through GRPC, which is a high-performance binary RPC protocol over HTTP/2. It offers many useful features, including request/response multiplex and full-duplex streaming.
